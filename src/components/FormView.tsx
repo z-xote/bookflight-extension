@@ -11,9 +11,19 @@ interface FormViewProps {
   onSkip: () => void;
 }
 
+interface Passenger {
+  id: number;
+  title: string;
+  firstName: string;
+  lastName: string;
+}
+
 export function FormView({ onSubmit, onSkip }: FormViewProps) {
   const { context, setContext } = useBookingContext();
   const [formData, setFormData] = useState<BookingContext>(context);
+  const [passengers, setPassengers] = useState<Passenger[]>([
+    { id: 1, title: '', firstName: '', lastName: '' }
+  ]);
   
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -23,14 +33,43 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
     if (returnInput) returnInput.min = today;
   }, []);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, passengerId?: number) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    
+    if (passengerId !== undefined) {
+      // Update specific passenger
+      setPassengers(prev => prev.map(p => 
+        p.id === passengerId ? { ...p, [id]: value } : p
+      ));
+    } else {
+      // Update main form data (non-passenger fields)
+      setFormData(prev => ({ ...prev, [id]: value }));
+    }
+  };
+  
+  const handleAddPassenger = () => {
+    const newId = Math.max(...passengers.map(p => p.id)) + 1;
+    setPassengers(prev => [...prev, { id: newId, title: '', firstName: '', lastName: '' }]);
+  };
+  
+  const handleRemovePassenger = (passengerId: number) => {
+    if (passengers.length > 1) {
+      setPassengers(prev => prev.filter(p => p.id !== passengerId));
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setContext(formData);
+    
+    // Store first passenger in main context for backward compatibility
+    const updatedFormData = { ...formData };
+    if (passengers[0]) {
+      updatedFormData.title = passengers[0].title;
+      updatedFormData.firstName = passengers[0].firstName;
+      updatedFormData.lastName = passengers[0].lastName;
+    }
+    
+    setContext(updatedFormData);
     onSubmit();
   };
   
@@ -44,38 +83,62 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
       <form className="booking-form" onSubmit={handleSubmit}>
         <div className="form-section">
           <div className="form-section-title">Customer Details</div>
-          <div className="form-row">
-            <Input
-              label="First Name"
-              id="firstName"
-              placeholder="e.g. Arun"
-              value={formData.firstName || ''}
-              onChange={handleChange}
-            />
-            <Input
-              label="Last Name"
-              id="lastName"
-              placeholder="e.g. Kumar"
-              value={formData.lastName || ''}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="form-row">
-            <Select
-              label="Title"
-              id="title"
-              value={formData.title || ''}
-              onChange={handleChange}
-              options={[
-                { value: '', label: 'Select' },
-                { value: 'MR', label: 'Mr' },
-                { value: 'MRS', label: 'Mrs' },
-                { value: 'MS', label: 'Ms' },
-                { value: 'MSTR', label: 'Master' },
-                { value: 'MISS', label: 'Miss' }
-              ]}
-            />
-          </div>
+          
+          {passengers.map((passenger, index) => (
+            <div key={passenger.id} className="passenger-row-wrapper">
+              <div className="passenger-row">
+                <Select
+                  label={index === 0 ? "Title" : ""}
+                  id="title"
+                  value={passenger.title}
+                  onChange={(e) => handleChange(e, passenger.id)}
+                  options={[
+                    { value: '', label: 'Select' },
+                    { value: 'MR', label: 'Mr' },
+                    { value: 'MRS', label: 'Mrs' },
+                    { value: 'MS', label: 'Ms' },
+                    { value: 'MSTR', label: 'Master' },
+                    { value: 'MISS', label: 'Miss' }
+                  ]}
+                />
+                <Input
+                  label={index === 0 ? "First Name" : ""}
+                  id="firstName"
+                  placeholder="e.g. Arun"
+                  value={passenger.firstName}
+                  onChange={(e) => handleChange(e, passenger.id)}
+                />
+                <Input
+                  label={index === 0 ? "Last Name" : ""}
+                  id="lastName"
+                  placeholder="e.g. Kumar"
+                  value={passenger.lastName}
+                  onChange={(e) => handleChange(e, passenger.id)}
+                />
+                {passengers.length > 1 && (
+                  <button
+                    type="button"
+                    className="remove-passenger-btn"
+                    onClick={() => handleRemovePassenger(passenger.id)}
+                    title="Remove passenger"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M15 9l-6 6M9 9l6 6"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          
+          <button type="button" className="add-passenger-btn" onClick={handleAddPassenger}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            Add Another Passenger
+          </button>
         </div>
         
         <div className="form-section">
