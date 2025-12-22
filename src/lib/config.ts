@@ -1,3 +1,7 @@
+// Import package.json to extract version
+
+import pkg from '@pkg' assert { type: 'json' }
+
 export const N8N_CONFIG = {
   webhook: {
     url: 'https://www.quicklst.com/webhook/9bd8be74-62eb-4c38-9b9e-41feee25ecc8/chat',
@@ -11,6 +15,8 @@ export const QUICK_ACTIONS = [
   { label: 'How to Sell', action: 'How do I sell a seat?' },
   { label: 'PNR Checklist', action: 'PNR checklist' }
 ];
+
+export const APP_VERSION = pkg.version;
 
 // =============================================================================
 // UTILITIES

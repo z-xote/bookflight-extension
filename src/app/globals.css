@@ -111,7 +111,6 @@ body {
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
   letter-spacing: 0.5px;
-  text-transform: uppercase;
   white-space: nowrap;
   backdrop-filter: blur(4px);
 }

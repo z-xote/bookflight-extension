@@ -1,12 +1,14 @@
 // components/ExtensionLayout.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import { Modal } from './Modal';
 import { FormView } from './FormView';
 import { ChatView } from './ChatView';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
+import { APP_VERSION } from '@/lib/config';
 
 export function ExtensionLayout() {
   const [currentView, setCurrentView] = useState<'form' | 'chat'>('form');
@@ -48,7 +50,7 @@ Just ask me anything about the booking process!`;
     }
     
     if (hasDate) {
-      const date = new Date(context.departDate);
+      const date = new Date(context.departDate!);
       const formatted = date.toLocaleDateString('en-GB', { 
         day: '2-digit', 
         month: 'short', 
@@ -58,7 +60,7 @@ Just ask me anything about the booking process!`;
     }
     
     if (hasRoute && hasDate) {
-      const date = new Date(context.departDate);
+      const date = new Date(context.departDate!);
       const day = String(date.getDate()).padStart(2, '0');
       const month = date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
       
@@ -101,7 +103,7 @@ Just ask me anything about the booking process!`;
     <div className="app-container">
       <header className="header">
         <div className="logo-container">
-          <img className="logo-icon" src="/bfl-red.png" alt="Bookflight logo" />
+          <Image className="logo-icon" src="/bfl-red.png" alt="Bookflight logo" width={32} height={32} />
         </div>
         
         <div className="header-text">
@@ -110,7 +112,7 @@ Just ask me anything about the booking process!`;
         </div>
 
         {/* VERSION BADGE */}
-        <div className="version-badge">v1.0.0</div>
+        <div className="version-badge">v{APP_VERSION}</div>
         
         <button 
           className="header-btn" 

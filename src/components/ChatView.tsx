@@ -6,7 +6,6 @@ import { Message } from './Message';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { QUICK_ACTIONS } from '@/lib/config';
-import { formatDate, escapeHtml } from '@/lib/utils';
 
 interface ChatViewProps {
   onEditContext: () => void;
@@ -49,13 +48,12 @@ export function ChatView({ onEditContext }: ChatViewProps) {
     }
   };
   
-  // ← CHANGE THIS FUNCTION
   const handleQuickAction = async (action: string) => {
     await sendMessage(action, context);
   };
   
   const renderContextBar = () => {
-    const tags: JSX.Element[] = [];
+    const tags: React.ReactElement[] = [];
     
     if (context.firstName || context.lastName) {
       const name = [context.firstName, context.lastName].filter(Boolean).join(' ');
