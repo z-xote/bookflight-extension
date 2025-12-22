@@ -1,3 +1,4 @@
+// components/ChatView.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -46,6 +47,11 @@ export function ChatView({ onEditContext }: ChatViewProps) {
       inputRef.current.style.height = 'auto';
       inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px';
     }
+  };
+  
+  // ← CHANGE THIS FUNCTION
+  const handleQuickAction = async (action: string) => {
+    await sendMessage(action, context);
   };
   
   const renderContextBar = () => {
@@ -147,10 +153,7 @@ export function ChatView({ onEditContext }: ChatViewProps) {
             <button
               key={qa.action}
               className="quick-action"
-              onClick={() => {
-                setInputValue(qa.action);
-                handleSend();
-              }}
+              onClick={() => handleQuickAction(qa.action)}
             >
               {qa.label}
             </button>

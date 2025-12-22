@@ -1,8 +1,9 @@
+// hooks/useChatMessages.ts
 'use client';
 
 import { create } from 'zustand';
 import type { Message, BookingContext } from '@/types';
-import { sendToN8N } from '@/lib/api';
+import { getTemplateResponse } from '@/lib/templateResponses';
 
 interface ChatStore {
   messages: Message[];
@@ -32,19 +33,14 @@ export const useChatMessages = create<ChatStore>((set, get) => ({
     addMessage('user', text);
     set({ isTyping: true });
     
-    try {
-      const response = await sendToN8N(text, context);
-      addMessage('assistant', response);
-    } catch (error) {
-      addMessage('assistant', 'Sorry, something went wrong. Please try again.');
-    } finally {
-      set({ isTyping: false });
-    }
+    // Simulate thinking delay
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    
+    const response = getTemplateResponse(text, context);
+    addMessage('assistant', response);
+    
+    set({ isTyping: false });
   },
   
   clearMessages: () => set({ messages: [] })
 }));
-
-// =============================================================================
-// UI COMPONENTS
-// =============================================================================

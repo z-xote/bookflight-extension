@@ -67,6 +67,7 @@ body {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #FFFFFF 0%, var(--gray-50) 100%);
+  overflow: hidden;  /* ← Add this if missing */
 }
 
 .header {
@@ -100,6 +101,19 @@ body {
   justify-content: center;
   box-shadow: var(--shadow-md);
   overflow: hidden;
+}
+
+.version-badge {
+  padding: 3px 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
 }
 
 .logo-icon {
@@ -294,7 +308,12 @@ body {
 
 .chat-view {
   background: var(--gray-50);
+  flex: 1;           /* ← Important */
+  display: flex;     /* ← Important */
+  flex-direction: column; /* ← Important */
+  overflow: hidden;  /* ← Important */
 }
+
 
 .chat-context-bar {
   padding: 10px 16px;
@@ -345,7 +364,8 @@ body {
 
 .chat-messages {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto;  /* ← This should allow scrolling */
+  overflow-x: hidden; /* ← Add this to prevent horizontal scroll */
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -778,71 +798,4 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-// =============================================================================
-// CONFIGURATION FILES
-// =============================================================================
 
-// package.json
-{
-  "name": "bookflight-extension",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "next": "14.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "zustand": "^4.4.7"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "typescript": "^5"
-  }
-}
-
-// tsconfig.json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-
-// next.config.js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
-  images: {
-    unoptimized: true
-  }
-}
-
-module.exports = nextConfig

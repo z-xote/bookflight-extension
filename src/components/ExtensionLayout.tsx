@@ -1,3 +1,4 @@
+// components/ExtensionLayout.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -107,6 +108,9 @@ Just ask me anything about the booking process!`;
           <h1 className="header-title">Bookflight Guide</h1>
           <p className="header-subtitle">Amadeus Booking Assistant</p>
         </div>
+
+        {/* VERSION BADGE */}
+        <div className="version-badge">v1.0.0</div>
         
         <button 
           className="header-btn" 
@@ -139,7 +143,3 @@ Just ask me anything about the booking process!`;
     </div>
   );
 }
-
-// =============================================================================
-// PAGES
-// =============================================================================
