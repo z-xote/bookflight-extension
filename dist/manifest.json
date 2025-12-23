@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Bookflight Guide",
+  "version": "1.0.4",
+  "description": "Amadeus Booking Assistant - Your guide to efficient flight bookings",
+  "action": {
+    "default_popup": "extension.html",
+    "default_icon": {
+      "16": "bfl-red.png",
+      "32": "bfl-red.png",
+      "48": "bfl-red.png",
+      "128": "bfl-red.png"
+    }
+  },
+  "icons": {
+    "16": "bfl-red.png",
+    "32": "bfl-red.png",
+    "48": "bfl-red.png",
+    "128": "bfl-red.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.anthropic.com/*"
+  ]
+}

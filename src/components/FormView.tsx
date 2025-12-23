@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/Button';
 import { Input, Select } from './ui/Input';
 import { useBookingContext } from '@/hooks/useBookingContext';
@@ -24,6 +24,8 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
   const [passengers, setPassengers] = useState<Passenger[]>([
     { id: 1, title: '', firstName: '', lastName: '' }
   ]);
+  const [isNearBottom, setIsNearBottom] = useState(false);
+  const formViewRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -31,6 +33,24 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
     const returnInput = document.getElementById('returnDate') as HTMLInputElement;
     if (departInput) departInput.min = today;
     if (returnInput) returnInput.min = today;
+  }, []);
+  
+  useEffect(() => {
+    const formView = formViewRef.current;
+    if (!formView) return;
+    
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = formView;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      
+      // Consider "near bottom" when within 100px
+      setIsNearBottom(distanceFromBottom < 100);
+    };
+    
+    formView.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial position
+    
+    return () => formView.removeEventListener('scroll', handleScroll);
   }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, passengerId?: number) => {
@@ -74,7 +94,7 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
   };
   
   return (
-    <div className="form-view active">
+    <div ref={formViewRef} className="form-view active">
       <div className="form-intro">
         <h2>New Booking Enquiry</h2>
         <p>Fill in the customer details below to start your booking. All fields are optional — skip to chat anytime.</p>
@@ -143,7 +163,7 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
         
         <div className="form-section">
           <div className="form-section-title">Contact Information</div>
-          <div className="form-group full-width">
+          <div className="contact-row">
             <Input
               label="Email Address"
               id="email"
@@ -152,8 +172,6 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
               value={formData.email || ''}
               onChange={handleChange}
             />
-          </div>
-          <div className="form-group full-width">
             <Input
               label="Phone Number"
               id="phone"
@@ -218,7 +236,7 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
           </div>
         </div>
         
-        <div className="form-actions">
+        <div className={`form-actions ${!isNearBottom ? 'form-actions-sticky' : ''}`}>
           <Button type="button" variant="secondary" onClick={onSkip}>
             Skip to Chat
           </Button>
