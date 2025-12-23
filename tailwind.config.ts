@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 
 const config: Config = {
   content: [
@@ -39,9 +40,12 @@ const config: Config = {
         },
       },
       backgroundImage: {
-        "gradient-primary": "linear-gradient(145deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%)",
-        "gradient-soft": "linear-gradient(180deg, #FEE2E2 0%, #FFFFFF 100%)",
-        "gradient-header": "linear-gradient(135deg, #DC2626 0%, #991B1B 100%)",
+        "gradient-primary":
+          "linear-gradient(145deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%)",
+        "gradient-soft":
+          "linear-gradient(180deg, #FEE2E2 0%, #FFFFFF 100%)",
+        "gradient-header":
+          "linear-gradient(135deg, #DC2626 0%, #991B1B 100%)",
       },
       boxShadow: {
         sm: "0 1px 2px rgba(0,0,0,0.05)",
@@ -69,9 +73,43 @@ const config: Config = {
         messageIn: "messageIn 0.3s ease",
         typing: "typing 1.4s infinite ease-in-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            // ✅ Fix for code blocks: Remove all styling from <code> inside <pre>
+            'pre code': {
+              backgroundColor: 'transparent',
+              color: '#e5e5e5', // gray-200 for readability on dark background
+              padding: '0',
+              borderRadius: '0',
+              border: 'none',
+              fontWeight: '400',
+              fontSize: '0.70rem', // 14px - adjust this value to your preference
+              lineHeight: '1.6',
+            },
+            // ✅ Keep styling for inline code (not inside <pre>)
+            ':not(pre) > code': {
+              backgroundColor: '#fef2f2', // red-50
+              color: '#b91c1c', // red-700
+              padding: '0.125rem 0.375rem',
+              borderRadius: '0.25rem',
+              border: '1px solid #fecaca', // red-200
+              fontSize: '0.875rem',
+              fontWeight: '400',
+            },
+            // Remove default backticks
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
 
 export default config;

@@ -1,6 +1,6 @@
 {
   "name": "bfg",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,7 @@
     "bump": "bun run src/scripts/bump.ts"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "clsx": "^2.1.1",
     "esbuild": "^0.27.2",
     "next": "16.1.0",
