@@ -1,4 +1,3 @@
-// components/ExtensionLayout.tsx
 'use client';
 
 import { useState } from 'react';
@@ -100,22 +99,31 @@ Just ask me anything about the booking process!`;
   };
   
   return (
-    <div className="app-container">
-      <header className="header">
-        <div className="logo-container">
-          <Image className="logo-icon" src="/bfl-red.png" alt="Bookflight logo" width={32} height={32} />
+    <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50">
+      {/* Header */}
+      <header className="relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent">
+        <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden">
+          <Image 
+            className="w-7 h-7 block object-contain" 
+            src="/bfl-red.png" 
+            alt="Bookflight logo" 
+            width={28} 
+            height={28} 
+          />
         </div>
         
-        <div className="header-text">
-          <h1 className="header-title">Bookflight Guide</h1>
-          <p className="header-subtitle">Amadeus Booking Assistant</p>
+        <div className="flex-1">
+          <h1 className="text-base font-bold text-white tracking-tight">Bookflight Guide</h1>
+          <p className="text-[11px] text-white/80 font-medium mt-px">Amadeus Booking Assistant</p>
         </div>
 
         {/* VERSION BADGE */}
-        <div className="version-badge">v{APP_VERSION}</div>
+        <div className="px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm">
+          v{APP_VERSION}
+        </div>
         
         <button 
-          className="header-btn" 
+          className="w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105" 
           onClick={handleReset}
           title="New Booking"
         >
@@ -126,16 +134,19 @@ Just ask me anything about the booking process!`;
         </button>
       </header>
       
-      {currentView === 'form' && (
-        <FormView 
-          onSubmit={handleFormSubmit} 
-          onSkip={handleSkipForm} 
-        />
-      )}
-      
-      {currentView === 'chat' && (
-        <ChatView onEditContext={handleEditContext} />
-      )}
+      {/* Views */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {currentView === 'form' && (
+          <FormView 
+            onSubmit={handleFormSubmit} 
+            onSkip={handleSkipForm} 
+          />
+        )}
+        
+        {currentView === 'chat' && (
+          <ChatView onEditContext={handleEditContext} />
+        )}
+      </div>
       
       <Modal 
         isOpen={showResetModal}

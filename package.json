@@ -1,10 +1,10 @@
 {
   "name": "bfg",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bun run src/build.ts",
     "start": "next start",
     "lint": "eslint",
     "bump": "bun run src/scripts/bump.ts"
