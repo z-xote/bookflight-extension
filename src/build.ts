@@ -2,10 +2,14 @@ import esbuild from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log('🚀 Building Chrome Extension...\n');
+
+// Read package.json to get version and name
+const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
 
 // Create Next.js image shim FIRST (before build)
 const shimDir = 'src/lib';
@@ -83,9 +87,18 @@ esbuild.build({
 }).then(() => {
   console.log('✓ JavaScript bundle created');
   
-  // Copy CSS
-  fs.copyFileSync('src/app/globals.css', 'dist/styles.css');
-  console.log('✓ CSS copied');
+  // Compile Tailwind CSS
+  console.log('⚙️  Compiling Tailwind CSS...');
+  try {
+    execSync(
+      'npx tailwindcss -i ./src/app/globals.css -o ./dist/styles.css --minify',
+      { stdio: 'inherit' }
+    );
+    console.log('✓ CSS compiled with Tailwind');
+  } catch (err) {
+    console.error('❌ Tailwind CSS compilation failed');
+    throw err;
+  }
   
   // Copy assets from public folder
   if (fs.existsSync('public')) {
@@ -130,26 +143,26 @@ esbuild.build({
   fs.writeFileSync('dist/extension.html', html);
   console.log('✓ extension.html created');
   
-  // Create manifest.json
+  // Generate manifest.json from package.json
   const manifest = {
     "manifest_version": 3,
     "name": "Bookflight Guide",
-    "version": "1.0.4",
+    "version": packageJson.version, // ✨ Derived from package.json
     "description": "Amadeus Booking Assistant - Your guide to efficient flight bookings",
     "action": {
       "default_popup": "extension.html",
       "default_icon": {
-        "16": "bfl-red.png",
-        "32": "bfl-red.png",
-        "48": "bfl-red.png",
-        "128": "bfl-red.png"
+        "16": "icon.png",
+        "32": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
       }
     },
     "icons": {
-      "16": "bfl-red.png",
-      "32": "bfl-red.png",
-      "48": "bfl-red.png",
-      "128": "bfl-red.png"
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
     },
     "permissions": [
       "storage"
@@ -160,7 +173,7 @@ esbuild.build({
   };
   
   fs.writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2));
-  console.log('✓ manifest.json created');
+  console.log(`✓ manifest.json created (v${packageJson.version})`);
   
   console.log('\n✅ Extension built successfully!\n');
   console.log('📦 Output files in dist/:');
@@ -169,7 +182,7 @@ esbuild.build({
   console.log('   - extension.js.map');
   console.log('   - styles.css');
   console.log('   - manifest.json');
-  console.log('   - bfl-red.png\n');
+  console.log('   - icon.png\n');
   console.log('🔧 To load in Chrome:');
   console.log('   1. Open chrome://extensions/');
   console.log('   2. Enable "Developer mode"');

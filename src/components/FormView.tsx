@@ -112,14 +112,14 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
   return (
     <div ref={formViewRef} className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-0 bg-gray-50">
       {/* Form Intro */}
-      <div className="bg-gradient-soft border-b border-gray-200 p-5">
+      <div className="bg-gradient-soft border-b-[0.5px] border-gray-100 pb-3 pt-5 px-5">
         <h2 className="text-lg font-bold text-gray-900 mb-1.5">New Booking Enquiry</h2>
         <p className="text-[13px] text-gray-600 leading-normal">
           Fill in the customer details below to start your booking. All fields are optional — skip to chat anytime.
         </p>
       </div>
       
-      <form className="flex flex-col gap-4 p-5 pb-24">{/* Note: pb-24 creates space for fixed footer */}
+      <form className="flex flex-col gap-4 p-5 pb-28">{/* Note: pb-24 creates space for fixed footer */}
         {/* Customer Details Section */}
         <div className="flex flex-col gap-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100">
@@ -129,7 +129,7 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
           {passengers.map((passenger, index) => (
             <div key={passenger.id} className="mb-3 last:mb-0">
               <div className="flex items-end gap-2">
-                <div className="min-w-[85px] shrink-0 basis-[85px]">
+                <div className="min-w-[70px] shrink-0 basis-[70px]">
                   <Select
                     label={index === 0 ? "Title" : ""}
                     id="title"

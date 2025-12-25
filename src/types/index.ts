@@ -31,6 +31,21 @@ export interface QuickAction {
   action: string;
 }
 
-// =============================================================================
-// CONFIGURATION
-// =============================================================================
+/**
+ * n8n Webhook Request Payload
+ */
+export interface N8NRequest {
+  chatId: string;
+  message: string;
+  route: string;
+  context?: BookingContext;
+}
+
+/**
+ * n8n Webhook Response
+ */
+export interface N8NResponse {
+  output?: string;
+  response?: string;
+  message?: string;
+}
