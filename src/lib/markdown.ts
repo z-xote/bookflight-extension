@@ -1,15 +1,15 @@
 import { escapeHtml } from './utils';
 
 function parseCodeBlocks(text: string): string {
-  return text.replace(/```([\s\S]*?)```/g, (match, code) => {
+  return text.replace(/```([\s\S]*?)```/g, (_match, code) => {
     const escaped = escapeHtml(code.trim());
-    return `<pre><code>${escaped}</code></pre>`;
+    return `<pre><div class="code-scroll"><code>${escaped}</code></div></pre>`;
   });
 }
 
 function parseTables(text: string): string {
   const lines = text.split('\n');
-  let result: string[] = [];
+  const result: string[] = [];
   let i = 0;
   
   while (i < lines.length) {
@@ -92,7 +92,7 @@ function parseHeaders(text: string): string {
 
 function parseLists(text: string): string {
   const lines = text.split('\n');
-  let result: string[] = [];
+  const result: string[] = [];
   let inList = false;
   let listType: 'ul' | 'ol' | null = null;
   
@@ -146,7 +146,7 @@ function parseItalic(text: string): string {
 }
 
 function parseInlineCode(text: string): string {
-  return text.replace(/`([^`]+)`/g, (match, code) => {
+  return text.replace(/`([^`]+)`/g, (_match, code) => {
     return `<code>${escapeHtml(code)}</code>`;
   });
 }
@@ -157,11 +157,11 @@ function parseLinks(text: string): string {
 
 function parseParagraphs(text: string): string {
   const lines = text.split('\n');
-  let result: string[] = [];
+  const result: string[] = [];
   let inParagraph = false;
   let paragraphLines: string[] = [];
   
-  for (let line of lines) {
+  for (const line of lines) {
     const trimmed = line.trim();
     
     if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
@@ -211,7 +211,3 @@ export function parseMarkdown(markdown: string): string {
   
   return html;
 }
-
-// =============================================================================
-// HOOKS
-// =============================================================================

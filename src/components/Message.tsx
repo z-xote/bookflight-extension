@@ -41,9 +41,7 @@ export function Message({ message }: MessageProps) {
         
         const chip = document.createElement('button');
         chip.type = 'button';
-        
-        // ✨ Inline Tailwind classes for the Amadeus button
-        chip.className = 'absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95';
+        chip.className = 'amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10';
         
         chip.textContent = 'Amadeus';
         
@@ -64,7 +62,7 @@ export function Message({ message }: MessageProps) {
         pre.appendChild(chip);
       });
     }
-  }, [role]);
+  },);
   
   return (
     <div className="flex gap-2.5 animate-messageIn">
@@ -87,7 +85,7 @@ export function Message({ message }: MessageProps) {
           className={cn(
             "px-3.5 py-3 rounded-md text-[13px] leading-relaxed",
             role === 'assistant' 
-              ? "bg-white border border-gray-200 shadow-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-headings:first:mt-0 prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-p:my-2 prose-p:first:mt-0 prose-p:last:mb-0 prose-strong:font-semibold prose-strong:text-gray-900 prose-ul:my-2 prose-ul:pl-5 prose-ol:my-2 prose-ol:pl-5 prose-li:my-1 prose-pre:my-3 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-3.5 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-x-auto prose-pre:relative prose-pre:text-sm [&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed prose-blockquote:my-3 prose-blockquote:py-2.5 prose-blockquote:px-3.5 prose-blockquote:bg-gray-100 prose-blockquote:border-l-[3px] prose-blockquote:border-red-500 prose-blockquote:rounded-r-md prose-blockquote:text-gray-700 prose-blockquote:italic prose-hr:my-4 prose-hr:border-none prose-hr:h-px prose-hr:bg-gray-200 prose-table:w-full prose-table:my-3 prose-table:border-collapse prose-table:text-xs prose-th:px-2.5 prose-th:py-2 prose-th:text-left prose-th:border prose-th:border-gray-200 prose-th:bg-gray-100 prose-th:font-semibold prose-th:text-gray-800 prose-td:px-2.5 prose-td:py-2 prose-td:text-left prose-td:border prose-td:border-gray-200"
+              ? "bg-white border border-gray-200 shadow-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-headings:first:mt-0 prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-p:my-2 prose-p:first:mt-0 prose-p:last:mb-0 prose-strong:font-semibold prose-strong:text-gray-900 prose-ul:my-2 prose-ul:pl-5 prose-ol:my-2 prose-ol:pl-5 prose-li:my-1 prose-code:text-xs prose-code:bg-red-50 prose-code:text-red-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-red-200 prose-code:font-mono prose-code:before:content-none prose-code:after:content-none prose-pre:my-3 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-0 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-visible prose-pre:relative [&_pre_.code-scroll]:overflow-x-auto [&_pre_.code-scroll]:pl-3.5 [&_pre_.code-scroll]:pr-3 [&_pre_.code-scroll]:scrollbar-thin [&_pre_.code-scroll::-webkit-scrollbar]:h-0 [&_pre_.code-scroll::-webkit-scrollbar-track]:bg-transparent [&_pre_.code-scroll::-webkit-scrollbar-thumb]:bg-transparent [&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed [&_pre_code]:!bg-transparent [&_pre_code]:!text-gray-200 [&_pre_code]:!p-0 [&_pre_code]:!border-none [&_pre_code]:block [&_pre_code]:whitespace-pre [&_pre_code]:w-max prose-blockquote:my-3 prose-blockquote:py-2.5 prose-blockquote:px-3.5 prose-blockquote:bg-gray-100 prose-blockquote:border-l-[3px] prose-blockquote:border-red-500 prose-blockquote:rounded-r-md prose-blockquote:text-gray-700 prose-blockquote:italic prose-hr:my-4 prose-hr:border-none prose-hr:h-px prose-hr:bg-gray-200 prose-table:w-full prose-table:my-3 prose-table:border-collapse prose-table:text-xs prose-th:px-2.5 prose-th:py-2 prose-th:text-left prose-th:border prose-th:border-gray-200 prose-th:bg-gray-100 prose-th:font-semibold prose-th:text-gray-800 prose-td:px-2.5 prose-td:py-2 prose-td:text-left prose-td:border prose-td:border-gray-200"
               : "bg-gray-800 text-white"
           )}
           dangerouslySetInnerHTML={{ __html: renderedContent }}
