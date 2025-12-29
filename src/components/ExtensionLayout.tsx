@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Modal } from './Modal';
+import { SessionModal } from './modals/SessionModal';
+import { SettingsModal } from './modals/SettingsModal';
 import { FormView } from './FormView';
 import { ChatView } from './ChatView';
 import { useBookingContext } from '@/hooks/useBookingContext';
@@ -13,6 +14,7 @@ import { APP_VERSION } from '@/lib/config';
 export function ExtensionLayout() {
   const [currentView, setCurrentView] = useState<'form' | 'chat'>('form');
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const { context, resetContext } = useBookingContext();
   const { addMessage, clearMessages } = useChatMessages();
   
@@ -75,14 +77,13 @@ Just ask me anything about the booking process!`;
   const handleFormSubmit = (formData: FormSubmission) => {
     setCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(false);
-    addMessage('assistant', welcomeMsg, formData); // PASS FORM DATA
+    addMessage('assistant', welcomeMsg, formData);
   };
-  
   
   const handleSkipForm = (formData: FormSubmission) => {
     setCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(true);
-    addMessage('assistant', welcomeMsg, formData); // PASS FORM DATA
+    addMessage('assistant', welcomeMsg, formData);
   };
   
   const handleEditContext = () => {
@@ -124,16 +125,30 @@ Just ask me anything about the booking process!`;
           v{APP_VERSION}
         </div>
         
-        <button 
-          className="w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105" 
-          onClick={handleReset}
-          title="New Booking"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
+        {/* Conditional Header Button */}
+        {currentView === 'form' ? (
+          <button 
+            className="w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105" 
+            onClick={() => setShowSettingsModal(true)}
+            title="Settings"
+          >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+          </button>
+        ) : (
+          <button 
+            className="w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105" 
+            onClick={handleReset}
+            title="New Booking"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
       </header>
       
       {/* Views */}
@@ -150,10 +165,16 @@ Just ask me anything about the booking process!`;
         )}
       </div>
       
-      <Modal 
+      {/* Modals */}
+      <SessionModal 
         isOpen={showResetModal}
         onClose={() => setShowResetModal(false)}
         onConfirm={confirmReset}
+      />
+      
+      <SettingsModal 
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
       />
     </div>
   );
