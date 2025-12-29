@@ -7,6 +7,7 @@ import { FormView } from './FormView';
 import { ChatView } from './ChatView';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
+import type { FormSubmission } from '@/types';
 import { APP_VERSION } from '@/lib/config';
 
 export function ExtensionLayout() {
@@ -71,16 +72,17 @@ Just ask me anything about the booking process!`;
     return message;
   };
   
-  const handleFormSubmit = () => {
+  const handleFormSubmit = (formData: FormSubmission) => {
     setCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(false);
-    addMessage('assistant', welcomeMsg);
+    addMessage('assistant', welcomeMsg, formData); // PASS FORM DATA
   };
   
-  const handleSkipForm = () => {
+  
+  const handleSkipForm = (formData: FormSubmission) => {
     setCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(true);
-    addMessage('assistant', welcomeMsg);
+    addMessage('assistant', welcomeMsg, formData); // PASS FORM DATA
   };
   
   const handleEditContext = () => {

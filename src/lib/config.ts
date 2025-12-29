@@ -3,9 +3,13 @@
 import pkg from '@pkg' assert { type: 'json' }
 
 export const N8N_CONFIG = {
-  webhook: {
-    url: 'https://www.quicklst.com/webhook/9bd8be74-62eb-4c38-9b9e-41feee25ecc8/chat',
-    route: 'bookflight-amadeus'
+  guide_mode: {
+    url: 'https://www.quicklst.com/webhook/f04e78da-709a-4b07-b846-7286a4c89f2c/chat', // TODO: Replace with actual guide mode webhook
+    route: 'bookflight-guide'
+  },
+  chat_mode: {
+    url: 'https://www.quicklst.com/webhook/9bd8be74-62eb-4c38-9b9e-41feee25ecc8/chat', // TODO: Replace with actual chat mode webhook
+    route: 'bookflight-chat'
   }
 };
 
@@ -17,7 +21,3 @@ export const QUICK_ACTIONS = [
 ];
 
 export const APP_VERSION = pkg.version;
-
-// =============================================================================
-// UTILITIES
-// =============================================================================

@@ -15874,18 +15874,28 @@
   function Button({
     variant = "primary",
     children,
+    disabled = false,
+    // ADD
     className,
     ...props
   }) {
     return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
       "button",
       {
+        disabled,
         className: cn(
-          // Base styles (.btn)
-          "flex flex-1 items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold font-sans transition-all duration-200 ease-in-out cursor-pointer",
+          // Base styles
+          "flex flex-1 items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold font-sans transition-all duration-200 ease-in-out",
+          // Cursor logic
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
           // Variants
-          variant === "primary" && "bg-gradient-primary text-white shadow-red hover:-translate-y-px hover:shadow-[0_6px_20px_-3px_rgba(220,38,38,0.5)] border-none",
-          variant === "secondary" && "bg-white text-gray-700 border-[1.5px] border-gray-300 hover:bg-gray-100 hover:border-gray-400",
+          variant === "primary" && "bg-gradient-primary text-white shadow-red border-none",
+          variant === "secondary" && "bg-white text-gray-700 border-[1.5px] border-gray-300",
+          // Hover effects ONLY when enabled
+          !disabled && variant === "primary" && "hover:-translate-y-px hover:shadow-[0_6px_20px_-3px_rgba(220,38,38,0.5)]",
+          !disabled && variant === "secondary" && "hover:bg-gray-100 hover:border-gray-400",
+          // Disabled styles
+          disabled && "opacity-50",
           className
         ),
         ...props,
@@ -15983,6 +15993,35 @@
 
   // src/components/FormView.tsx
   var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var isBookingGuideReady = (passengers, formData) => {
+    const hasValidPassenger = passengers.some(
+      (p) => p.firstName.trim() && p.lastName.trim()
+    );
+    const hasPhone = !!formData.phone?.trim();
+    const hasTravelDetails = !!(formData.origin?.trim() && formData.destination?.trim() && formData.departDate);
+    return hasValidPassenger && hasPhone && hasTravelDetails;
+  };
+  var buildFormSubmission = (passengers, formData, submissionType) => {
+    return {
+      submission_type: submissionType,
+      passengers: passengers.map((p) => ({
+        title: p.title,
+        firstName: p.firstName,
+        lastName: p.lastName
+      })),
+      contact_info: {
+        email: formData.email,
+        phone: formData.phone
+      },
+      travel_details: {
+        origin: formData.origin,
+        destination: formData.destination,
+        departure: formData.departDate,
+        return: formData.returnDate,
+        trip_type: formData.tripType
+      }
+    };
+  };
   function FormView({ onSubmit, onSkip }) {
     const { context, setContext } = useBookingContext();
     const [formData, setFormData] = (0, import_react3.useState)(context);
@@ -15992,6 +16031,7 @@
     const [isNearBottom, setIsNearBottom] = (0, import_react3.useState)(false);
     const formViewRef = (0, import_react3.useRef)(null);
     const scrollTimeout = (0, import_react3.useRef)(void 0);
+    const isGuideReady = isBookingGuideReady(passengers, formData);
     (0, import_react3.useEffect)(() => {
       const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       const departInput = document.getElementById("departDate");
@@ -16039,6 +16079,7 @@
     };
     const handleSubmit = (e) => {
       e.preventDefault();
+      const formSubmission = buildFormSubmission(passengers, formData, "filled_form");
       const updatedFormData = { ...formData };
       if (passengers[0]) {
         updatedFormData.title = passengers[0].title;
@@ -16046,7 +16087,11 @@
         updatedFormData.lastName = passengers[0].lastName;
       }
       setContext(updatedFormData);
-      onSubmit();
+      onSubmit(formSubmission);
+    };
+    const handleSkipToChat = () => {
+      const formSubmission = buildFormSubmission(passengers, formData, "skipped_form");
+      onSkip(formSubmission);
     };
     const handleFormSubmit = (e) => {
       if (e) e.preventDefault();
@@ -16225,14 +16270,24 @@
         "fixed bottom-0 left-0 right-0 z-20 flex gap-2.5 p-5 bg-white border-t border-gray-200 transition-all duration-200",
         isNearBottom ? "shadow-none" : "shadow-sticky-footer before:content-[''] before:absolute before:-top-10 before:left-0 before:right-0 before:h-10 before:bg-gradient-to-b before:from-transparent before:to-white before:pointer-events-none"
       ), children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Button, { type: "button", variant: "secondary", onClick: onSkip, children: "Skip to Chat" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Button, { type: "button", variant: "primary", onClick: handleFormSubmit, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M5 12h14" }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "m12 5 7 7-7 7" })
-          ] }),
-          "Start Booking"
-        ] })
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Button, { type: "button", variant: "secondary", onClick: handleSkipToChat, children: "Skip to Chat" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+          Button,
+          {
+            type: "button",
+            variant: "primary",
+            onClick: handleFormSubmit,
+            disabled: !isGuideReady,
+            title: !isGuideReady ? "Fill required fields: passengers, phone, travel details" : "",
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M5 12h14" }),
+                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "m12 5 7 7-7 7" })
+              ] }),
+              "Booking Guide"
+            ]
+          }
+        )
       ] })
     ] });
   }
@@ -16245,14 +16300,14 @@
 
   // src/lib/markdown.ts
   function parseCodeBlocks(text) {
-    return text.replace(/```([\s\S]*?)```/g, (match, code) => {
+    return text.replace(/```([\s\S]*?)```/g, (_match, code) => {
       const escaped = escapeHtml(code.trim());
-      return `<pre><code>${escaped}</code></pre>`;
+      return `<pre><div class="code-scroll"><code>${escaped}</code></div></pre>`;
     });
   }
   function parseTables(text) {
     const lines = text.split("\n");
-    let result = [];
+    const result = [];
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
@@ -16313,7 +16368,7 @@
   }
   function parseLists(text) {
     const lines = text.split("\n");
-    let result = [];
+    const result = [];
     let inList = false;
     let listType = null;
     for (let i = 0; i < lines.length; i++) {
@@ -16358,7 +16413,7 @@
     return text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
   }
   function parseInlineCode(text) {
-    return text.replace(/`([^`]+)`/g, (match, code) => {
+    return text.replace(/`([^`]+)`/g, (_match, code) => {
       return `<code>${escapeHtml(code)}</code>`;
     });
   }
@@ -16367,10 +16422,10 @@
   }
   function parseParagraphs(text) {
     const lines = text.split("\n");
-    let result = [];
+    const result = [];
     let inParagraph = false;
     let paragraphLines = [];
-    for (let line of lines) {
+    for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
         if (inParagraph) {
@@ -16432,7 +16487,7 @@
           if (pre.querySelector(".amadeus-chip")) return;
           const chip = document.createElement("button");
           chip.type = "button";
-          chip.className = "absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95";
+          chip.className = "amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10";
           chip.textContent = "Amadeus";
           chip.addEventListener("click", async () => {
             const codeEl = pre.querySelector("code");
@@ -16453,7 +16508,7 @@
           pre.appendChild(chip);
         });
       }
-    }, [role]);
+    });
     return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
       /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: cn(
         "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0",
@@ -16470,7 +16525,7 @@
             ref: bubbleRef,
             className: cn(
               "px-3.5 py-3 rounded-md text-[13px] leading-relaxed",
-              role === "assistant" ? "bg-white border border-gray-200 shadow-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-headings:first:mt-0 prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-p:my-2 prose-p:first:mt-0 prose-p:last:mb-0 prose-strong:font-semibold prose-strong:text-gray-900 prose-ul:my-2 prose-ul:pl-5 prose-ol:my-2 prose-ol:pl-5 prose-li:my-1 prose-pre:my-3 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-3.5 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-x-auto prose-pre:relative prose-pre:text-sm [&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed prose-blockquote:my-3 prose-blockquote:py-2.5 prose-blockquote:px-3.5 prose-blockquote:bg-gray-100 prose-blockquote:border-l-[3px] prose-blockquote:border-red-500 prose-blockquote:rounded-r-md prose-blockquote:text-gray-700 prose-blockquote:italic prose-hr:my-4 prose-hr:border-none prose-hr:h-px prose-hr:bg-gray-200 prose-table:w-full prose-table:my-3 prose-table:border-collapse prose-table:text-xs prose-th:px-2.5 prose-th:py-2 prose-th:text-left prose-th:border prose-th:border-gray-200 prose-th:bg-gray-100 prose-th:font-semibold prose-th:text-gray-800 prose-td:px-2.5 prose-td:py-2 prose-td:text-left prose-td:border prose-td:border-gray-200" : "bg-gray-800 text-white"
+              role === "assistant" ? "bg-white border border-gray-200 shadow-sm prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-4 prose-headings:mb-2 prose-headings:first:mt-0 prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-p:my-2 prose-p:first:mt-0 prose-p:last:mb-0 prose-strong:font-semibold prose-strong:text-gray-900 prose-ul:my-2 prose-ul:pl-5 prose-ol:my-2 prose-ol:pl-5 prose-li:my-1 prose-code:text-xs prose-code:bg-red-50 prose-code:text-red-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:border prose-code:border-red-200 prose-code:font-mono prose-code:before:content-none prose-code:after:content-none prose-pre:my-3 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-0 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-visible prose-pre:relative [&_pre_.code-scroll]:overflow-x-auto [&_pre_.code-scroll]:pl-3.5 [&_pre_.code-scroll]:pr-3 [&_pre_.code-scroll]:scrollbar-thin [&_pre_.code-scroll::-webkit-scrollbar]:h-0 [&_pre_.code-scroll::-webkit-scrollbar-track]:bg-transparent [&_pre_.code-scroll::-webkit-scrollbar-thumb]:bg-transparent [&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed [&_pre_code]:!bg-transparent [&_pre_code]:!text-gray-200 [&_pre_code]:!p-0 [&_pre_code]:!border-none [&_pre_code]:block [&_pre_code]:whitespace-pre [&_pre_code]:w-max prose-blockquote:my-3 prose-blockquote:py-2.5 prose-blockquote:px-3.5 prose-blockquote:bg-gray-100 prose-blockquote:border-l-[3px] prose-blockquote:border-red-500 prose-blockquote:rounded-r-md prose-blockquote:text-gray-700 prose-blockquote:italic prose-hr:my-4 prose-hr:border-none prose-hr:h-px prose-hr:bg-gray-200 prose-table:w-full prose-table:my-3 prose-table:border-collapse prose-table:text-xs prose-th:px-2.5 prose-th:py-2 prose-th:text-left prose-th:border prose-th:border-gray-200 prose-th:bg-gray-100 prose-th:font-semibold prose-th:text-gray-800 prose-td:px-2.5 prose-td:py-2 prose-td:text-left prose-td:border prose-td:border-gray-200" : "bg-gray-800 text-white"
             ),
             dangerouslySetInnerHTML: { __html: renderedContent }
           }
@@ -16482,7 +16537,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.0.7",
+    version: "1.1.0",
     private: true,
     scripts: {
       dev: "next dev",
@@ -16525,9 +16580,15 @@
 
   // src/lib/config.ts
   var N8N_CONFIG = {
-    webhook: {
+    guide_mode: {
+      url: "https://www.quicklst.com/webhook/f04e78da-709a-4b07-b846-7286a4c89f2c/chat",
+      // TODO: Replace with actual guide mode webhook
+      route: "bookflight-guide"
+    },
+    chat_mode: {
       url: "https://www.quicklst.com/webhook/9bd8be74-62eb-4c38-9b9e-41feee25ecc8/chat",
-      route: "bookflight-amadeus"
+      // TODO: Replace with actual chat mode webhook
+      route: "bookflight-chat"
     }
   };
   var QUICK_ACTIONS = [
@@ -16539,10 +16600,11 @@
   var APP_VERSION = package_default.version;
 
   // src/lib/api.ts
-  async function sendToN8N(userMessage, context) {
+  async function sendToN8N(userMessage, formData) {
     const chatId = getChatId();
+    const agentConfig = formData.submission_type === "filled_form" ? N8N_CONFIG.guide_mode : N8N_CONFIG.chat_mode;
     try {
-      const response = await fetch(N8N_CONFIG.webhook.url, {
+      const response = await fetch(agentConfig.url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -16550,9 +16612,9 @@
         body: JSON.stringify({
           chatId,
           message: userMessage,
-          route: N8N_CONFIG.webhook.route,
-          ...context && { context }
-          // Only include context if provided
+          route: agentConfig.route,
+          form: formData
+          // Send entire form structure
         })
       });
       if (!response.ok) {
@@ -16574,21 +16636,38 @@
   var useChatMessages = create((set, get) => ({
     messages: [],
     isTyping: false,
-    addMessage: (role, content) => {
+    formData: null,
+    isFirstMessage: true,
+    // INITIALIZE
+    addMessage: (role, content, formData) => {
       const message = {
         id: Date.now().toString(),
         role,
         content,
         timestamp: /* @__PURE__ */ new Date()
       };
-      set((state) => ({ messages: [...state.messages, message] }));
+      set((state) => ({
+        messages: [...state.messages, message],
+        ...formData && { formData, isFirstMessage: true }
+        // RESET FLAG WHEN FORM PROVIDED
+      }));
     },
-    sendMessage: async (text, context) => {
-      const { addMessage } = get();
+    sendMessage: async (text) => {
+      const { addMessage, formData, isFirstMessage } = get();
+      if (!formData) {
+        console.error("No form data available");
+        addMessage("assistant", "Error: Session data missing. Please refresh.");
+        return;
+      }
+      let messageToSend = text;
+      if (isFirstMessage) {
+        messageToSend = buildMessageWithContext(text, formData);
+        set({ isFirstMessage: false });
+      }
       addMessage("user", text);
       set({ isTyping: true });
       try {
-        const aiResponse = await sendToN8N(text, context);
+        const aiResponse = await sendToN8N(messageToSend, formData.submission_type);
         addMessage("assistant", aiResponse);
       } catch (error) {
         console.error("Error sending message:", error);
@@ -16597,8 +16676,22 @@
         set({ isTyping: false });
       }
     },
-    clearMessages: () => set({ messages: [] })
+    clearMessages: () => set({ messages: [], formData: null, isFirstMessage: true })
   }));
+  function buildMessageWithContext(message, formData) {
+    const passengers = formData.passengers.filter((p) => p.firstName && p.lastName).map((p) => `${p.title} ${p.firstName} ${p.lastName}`.trim()).join(", ");
+    const parts = [message, "", "---", "[BOOKING CONTEXT]"];
+    if (passengers) parts.push(`Passengers: ${passengers}`);
+    if (formData.contact_info.phone) parts.push(`Phone: ${formData.contact_info.phone}`);
+    if (formData.contact_info.email) parts.push(`Email: ${formData.contact_info.email}`);
+    if (formData.travel_details.origin && formData.travel_details.destination) {
+      parts.push(`Route: ${formData.travel_details.origin} \u2192 ${formData.travel_details.destination}`);
+    }
+    if (formData.travel_details.departure) parts.push(`Departure: ${formData.travel_details.departure}`);
+    if (formData.travel_details.return) parts.push(`Return: ${formData.travel_details.return}`);
+    if (formData.travel_details.trip_type) parts.push(`Trip Type: ${formData.travel_details.trip_type}`);
+    return parts.join("\n");
+  }
 
   // src/components/ChatView.tsx
   var import_jsx_runtime6 = __toESM(require_jsx_runtime());
@@ -16618,7 +16711,7 @@
       if (inputRef.current) {
         inputRef.current.style.height = "auto";
       }
-      await sendMessage(text, context);
+      await sendMessage(text);
     };
     const handleKeyDown = (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -16633,7 +16726,7 @@
       }
     };
     const handleQuickAction = async (action) => {
-      await sendMessage(action, context);
+      await sendMessage(action);
     };
     const renderContextBar = () => {
       const tags = [];
@@ -16831,15 +16924,15 @@ What would you like help with? I can guide you through:
       }
       return message;
     };
-    const handleFormSubmit = () => {
+    const handleFormSubmit = (formData) => {
       setCurrentView("chat");
       const welcomeMsg = generateWelcomeMessage(false);
-      addMessage("assistant", welcomeMsg);
+      addMessage("assistant", welcomeMsg, formData);
     };
-    const handleSkipForm = () => {
+    const handleSkipForm = (formData) => {
       setCurrentView("chat");
       const welcomeMsg = generateWelcomeMessage(true);
-      addMessage("assistant", welcomeMsg);
+      addMessage("assistant", welcomeMsg, formData);
     };
     const handleEditContext = () => {
       setCurrentView("form");

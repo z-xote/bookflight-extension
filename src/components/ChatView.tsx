@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Message } from './Message';
 import { useChatMessages } from '@/hooks/useChatMessages';
-import { useBookingContext } from '@/hooks/useBookingContext';
+import { useBookingContext } from '@/hooks/useBookingContext'; // KEEP THIS
 import { QUICK_ACTIONS } from '@/lib/config';
 import { cn } from '@/lib/utils';
 
@@ -13,7 +13,7 @@ interface ChatViewProps {
 
 export function ChatView({ onEditContext }: ChatViewProps) {
   const { messages, isTyping, sendMessage } = useChatMessages();
-  const { context } = useBookingContext();
+  const { context } = useBookingContext(); // ADD THIS BACK - needed for renderContextBar
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -31,7 +31,7 @@ export function ChatView({ onEditContext }: ChatViewProps) {
       inputRef.current.style.height = 'auto';
     }
     
-    await sendMessage(text, context);
+    await sendMessage(text); // context removed - now uses stored formData
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -49,7 +49,7 @@ export function ChatView({ onEditContext }: ChatViewProps) {
   };
   
   const handleQuickAction = async (action: string) => {
-    await sendMessage(action, context);
+    await sendMessage(action); // context removed - now uses stored formData
   };
   
   const renderContextBar = () => {

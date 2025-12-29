@@ -1,22 +1,27 @@
 import { N8N_CONFIG } from './config';
 import { getChatId } from './utils';
-import type { BookingContext } from '@/types';
+import type { FormSubmission } from '@/types';
 
 /**
- * Send message to n8n AI backend
+ * Send message to appropriate n8n agent based on submission type
  * 
  * @param userMessage - The user's input message
- * @param context - Optional booking context for personalized responses
+ * @param formData - Form submission data with submission_type
  * @returns AI-generated response text
  */
 export async function sendToN8N(
   userMessage: string, 
-  context?: BookingContext
+  formData: FormSubmission
 ): Promise<string> {
   const chatId = getChatId();
   
+  // Route to correct agent based on submission_type
+  const agentConfig = formData.submission_type === 'filled_form' 
+    ? N8N_CONFIG.guide_mode 
+    : N8N_CONFIG.chat_mode;
+  
   try {
-    const response = await fetch(N8N_CONFIG.webhook.url, {
+    const response = await fetch(agentConfig.url, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json' 
@@ -24,8 +29,8 @@ export async function sendToN8N(
       body: JSON.stringify({
         chatId,
         message: userMessage,
-        route: N8N_CONFIG.webhook.route,
-        ...(context && { context }) // Only include context if provided
+        route: agentConfig.route,
+        form: formData // Send entire form structure
       })
     });
     

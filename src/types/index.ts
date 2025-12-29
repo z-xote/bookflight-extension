@@ -49,3 +49,29 @@ export interface N8NResponse {
   response?: string;
   message?: string;
 }
+
+
+
+export type SubmissionType = 'filled_form' | 'skipped_form';
+
+export interface PassengerData {
+  title: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface FormSubmission {
+  submission_type: SubmissionType;
+  passengers: PassengerData[];
+  contact_info: {
+    email?: string;
+    phone?: string;
+  };
+  travel_details: {
+    origin?: string;
+    destination?: string;
+    departure?: string;
+    return?: string;
+    trip_type?: string;
+  };
+}

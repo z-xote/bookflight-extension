@@ -64,3 +64,11 @@ travel_details: {
 ```
 
 version 1.0.8: populate prompt with client data.
+
+--- 
+
+the issue with codeblock is that we're not having the copy button stick to top right. when sliding, it sort of goes into the middle, as seen in the screenshot.then i also do not want a slider visible in the codeblock. 
+
+to fix this we can remove slider from div, and push the copy button either above the sliding div or use some z-index magic. 
+
+but what files to give ai? 

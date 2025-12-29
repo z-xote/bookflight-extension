@@ -5,12 +5,13 @@ import { Button } from './ui/Button';
 import { Input, Select } from './ui/Input';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { cn } from '@/lib/utils';
-import type { BookingContext } from '@/types';
+import type { BookingContext, FormSubmission, SubmissionType } from '@/types';
 
 interface FormViewProps {
-  onSubmit: () => void;
-  onSkip: () => void;
+  onSubmit: (formData: FormSubmission) => void; 
+  onSkip: (formData: FormSubmission) => void;  
 }
+
 
 interface Passenger {
   id: number;
@@ -18,6 +19,58 @@ interface Passenger {
   firstName: string;
   lastName: string;
 }
+
+// Validation: Check if Booking Guide requirements are met
+const isBookingGuideReady = (
+  passengers: Passenger[], 
+  formData: BookingContext
+): boolean => {
+  // At least one passenger with complete name
+  const hasValidPassenger = passengers.some(
+    p => p.firstName.trim() && p.lastName.trim()
+  );
+  
+  // Phone number exists
+  const hasPhone = !!formData.phone?.trim();
+  
+  // Travel details complete (origin, destination, departure date)
+  const hasTravelDetails = !!(
+    formData.origin?.trim() && 
+    formData.destination?.trim() && 
+    formData.departDate
+  );
+  
+  return hasValidPassenger && hasPhone && hasTravelDetails;
+};
+
+
+const buildFormSubmission = (
+  passengers: Passenger[],
+  formData: BookingContext,
+  submissionType: SubmissionType
+): FormSubmission => {
+  return {
+    submission_type: submissionType,
+    passengers: passengers.map(p => ({
+      title: p.title,
+      firstName: p.firstName,
+      lastName: p.lastName
+    })),
+    contact_info: {
+      email: formData.email,
+      phone: formData.phone
+    },
+    travel_details: {
+      origin: formData.origin,
+      destination: formData.destination,
+      departure: formData.departDate,
+      return: formData.returnDate,
+      trip_type: formData.tripType
+    }
+  };
+};
+
+
 
 export function FormView({ onSubmit, onSkip }: FormViewProps) {
   const { context, setContext } = useBookingContext();
@@ -28,6 +81,7 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const formViewRef = useRef<HTMLDivElement>(null);
   const scrollTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isGuideReady = isBookingGuideReady(passengers, formData);
   
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -92,7 +146,10 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Store first passenger in main context for backward compatibility
+    // Build filled form submission
+    const formSubmission = buildFormSubmission(passengers, formData, 'filled_form');
+    
+    // Store first passenger in context for backward compatibility
     const updatedFormData = { ...formData };
     if (passengers[0]) {
       updatedFormData.title = passengers[0].title;
@@ -101,9 +158,17 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
     }
     
     setContext(updatedFormData);
-    onSubmit();
+    onSubmit(formSubmission); // PASS FORM DATA
+  };
+
+  const handleSkipToChat = () => {
+    // Build skipped form submission (partial data okay)
+    const formSubmission = buildFormSubmission(passengers, formData, 'skipped_form');
+    onSkip(formSubmission); // PASS FORM DATA
   };
   
+
+
   const handleFormSubmit = (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
     handleSubmit(e as React.FormEvent);
@@ -281,15 +346,21 @@ export function FormView({ onSubmit, onSkip }: FormViewProps) {
         "fixed bottom-0 left-0 right-0 z-20 flex gap-2.5 p-5 bg-white border-t border-gray-200 transition-all duration-200",
         isNearBottom ? "shadow-none" : "shadow-sticky-footer before:content-[''] before:absolute before:-top-10 before:left-0 before:right-0 before:h-10 before:bg-gradient-to-b before:from-transparent before:to-white before:pointer-events-none"
       )}>
-        <Button type="button" variant="secondary" onClick={onSkip}>
+        <Button type="button" variant="secondary" onClick={handleSkipToChat}>
           Skip to Chat
         </Button>
-        <Button type="button" variant="primary" onClick={handleFormSubmit}>
+        <Button 
+          type="button" 
+          variant="primary" 
+          onClick={handleFormSubmit}
+          disabled={!isGuideReady}
+          title={!isGuideReady ? "Fill required fields: passengers, phone, travel details" : ""}
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12h14"/>
             <path d="m12 5 7 7-7 7"/>
           </svg>
-          Start Booking
+          Booking Guide
         </Button>
       </div>
     </div>

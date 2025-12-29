@@ -5,14 +5,19 @@ import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, '..'); // Absolute project root
 
 console.log('🚀 Building Chrome Extension...\n');
 
 // Read package.json to get version and name
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8')
+);
 
-// Create Next.js image shim FIRST (before build)
-const shimDir = 'src/lib';
+// ============================================================================
+// STEP 1: Create Next.js Image Shim (Before Build)
+// ============================================================================
+const shimDir = path.join(rootDir, 'src', 'lib');
 if (!fs.existsSync(shimDir)) {
   fs.mkdirSync(shimDir, { recursive: true });
 }
@@ -31,10 +36,13 @@ export default function Image({ src, alt, width, height, className, ...props }) 
   });
 }`;
 
-fs.writeFileSync('src/lib/image-shim.js', imageShim);
+const shimPath = path.join(shimDir, 'image-shim.js');
+fs.writeFileSync(shimPath, imageShim);
 console.log('✓ Image shim created');
 
-// Create extension entry point
+// ============================================================================
+// STEP 2: Create Extension Entry Point
+// ============================================================================
 const entryPoint = `import React from 'react';
 import { createRoot } from 'react-dom/client';
 import Home from './app/page';
@@ -51,20 +59,28 @@ if (root) {
   console.error('Root element not found');
 }`;
 
-fs.writeFileSync('src/entry.tsx', entryPoint);
+const entryPath = path.join(rootDir, 'src', 'entry.tsx');
+fs.writeFileSync(entryPath, entryPoint);
 console.log('✓ Extension entry point created');
 
-// Clean dist folder
-if (fs.existsSync('dist')) {
-  fs.rmSync('dist', { recursive: true });
+// ============================================================================
+// STEP 3: Prepare Dist Folder
+// ============================================================================
+const distDir = path.join(rootDir, 'dist');
+if (fs.existsSync(distDir)) {
+  fs.rmSync(distDir, { recursive: true });
 }
-fs.mkdirSync('dist');
+fs.mkdirSync(distDir);
 
-// Build JavaScript bundle
-esbuild.build({
-  entryPoints: ['src/entry.tsx'],
+// ============================================================================
+// STEP 4: Build JavaScript Bundle with esbuild
+// ============================================================================
+console.log('⚙️  Bundling JavaScript...');
+
+await esbuild.build({
+  entryPoints: [entryPath],
   bundle: true,
-  outfile: 'dist/extension.js',
+  outfile: path.join(distDir, 'extension.js'),
   format: 'iife',
   platform: 'browser',
   target: ['chrome100'],
@@ -82,38 +98,61 @@ esbuild.build({
   jsx: 'automatic',
   jsxImportSource: 'react',
   alias: {
-    'next/image': './src/lib/image-shim.js'
+    // ✨ FIX: Use absolute path for cross-platform compatibility
+    'next/image': shimPath
   }
 }).then(() => {
   console.log('✓ JavaScript bundle created');
-  
-  // Compile Tailwind CSS
-  console.log('⚙️  Compiling Tailwind CSS...');
-  try {
-    execSync(
-      'npx tailwindcss -i ./src/app/globals.css -o ./dist/styles.css --minify',
-      { stdio: 'inherit' }
-    );
-    console.log('✓ CSS compiled with Tailwind');
-  } catch (err) {
-    console.error('❌ Tailwind CSS compilation failed');
-    throw err;
-  }
-  
-  // Copy assets from public folder
-  if (fs.existsSync('public')) {
-    const publicFiles = fs.readdirSync('public');
-    publicFiles.forEach((file) => {
-      fs.copyFileSync(
-        path.join('public', file),
-        path.join('dist', file)
-      );
-    });
-    console.log('✓ Assets copied');
-  }
-  
-  // Create extension.html
-  const html = `<!DOCTYPE html>
+}).catch((err) => {
+  console.error('❌ esbuild failed:');
+  console.error(err);
+  process.exit(1);
+});
+
+// ============================================================================
+// STEP 5: Compile Tailwind CSS
+// ============================================================================
+console.log('⚙️  Compiling Tailwind CSS...');
+
+const inputCSS = path.join(rootDir, 'src', 'app', 'globals.css');
+const outputCSS = path.join(distDir, 'styles.css');
+
+// ✨ FIX: Platform-agnostic npx command (handles Windows .cmd)
+const isWindows = process.platform === 'win32';
+const npxCommand = isWindows ? 'npx.cmd' : 'npx';
+
+try {
+  execSync(
+    `${npxCommand} tailwindcss -i "${inputCSS}" -o "${outputCSS}" --minify`,
+    { 
+      stdio: 'inherit',
+      cwd: rootDir // ✨ FIX: Explicit working directory
+    }
+  );
+  console.log('✓ CSS compiled with Tailwind');
+} catch (err) {
+  console.error('❌ Tailwind CSS compilation failed');
+  throw err;
+}
+
+// ============================================================================
+// STEP 6: Copy Public Assets
+// ============================================================================
+const publicDir = path.join(rootDir, 'public');
+if (fs.existsSync(publicDir)) {
+  const publicFiles = fs.readdirSync(publicDir);
+  publicFiles.forEach((file) => {
+    const srcPath = path.join(publicDir, file);
+    const destPath = path.join(distDir, file);
+    fs.copyFileSync(srcPath, destPath);
+  });
+  console.log('✓ Assets copied');
+}
+
+// ============================================================================
+// STEP 7: Create Extension HTML
+// ============================================================================
+const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -139,58 +178,83 @@ esbuild.build({
   <script src="extension.js"></script>
 </body>
 </html>`;
-  
-  fs.writeFileSync('dist/extension.html', html);
-  console.log('✓ extension.html created');
-  
-  // Generate manifest.json from package.json
-  const manifest = {
-    "manifest_version": 3,
-    "name": "Bookflight Guide",
-    "version": packageJson.version, // ✨ Derived from package.json
-    "description": "Amadeus Booking Assistant - Your guide to efficient flight bookings",
-    "action": {
-      "default_popup": "extension.html",
-      "default_icon": {
-        "16": "icon.png",
-        "32": "icon.png",
-        "48": "icon.png",
-        "128": "icon.png"
-      }
-    },
-    "icons": {
+
+fs.writeFileSync(path.join(distDir, 'extension.html'), html);
+console.log('✓ extension.html created');
+
+// ============================================================================
+// STEP 8: Generate Manifest
+// ============================================================================
+const manifest = {
+  "manifest_version": 3,
+  "name": "Bookflight Guide",
+  "version": packageJson.version,
+  "description": "Amadeus Booking Assistant - Your guide to efficient flight bookings",
+  "action": {
+    "default_popup": "extension.html",
+    "default_icon": {
       "16": "icon.png",
       "32": "icon.png",
       "48": "icon.png",
       "128": "icon.png"
-    },
-    "permissions": [
-      "storage"
-    ],
-    "host_permissions": [
-      "https://api.anthropic.com/*"
-    ]
-  };
-  
-  fs.writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2));
-  console.log(`✓ manifest.json created (v${packageJson.version})`);
-  
-  console.log('\n✅ Extension built successfully!\n');
-  console.log('📦 Output files in dist/:');
-  console.log('   - extension.html');
-  console.log('   - extension.js');
-  console.log('   - extension.js.map');
-  console.log('   - styles.css');
-  console.log('   - manifest.json');
-  console.log('   - icon.png\n');
-  console.log('🔧 To load in Chrome:');
-  console.log('   1. Open chrome://extensions/');
-  console.log('   2. Enable "Developer mode"');
-  console.log('   3. Click "Load unpacked"');
-  console.log('   4. Select the "dist" folder\n');
-  
-}).catch((err) => {
-  console.error('❌ Build failed:');
-  console.error(err);
+    }
+  },
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.anthropic.com/*"
+  ]
+};
+
+fs.writeFileSync(
+  path.join(distDir, 'manifest.json'), 
+  JSON.stringify(manifest, null, 2)
+);
+console.log(`✓ manifest.json created (v${packageJson.version})`);
+
+// ============================================================================
+// STEP 9: Verify Critical Files Exist
+// ============================================================================
+const criticalFiles = [
+  'extension.html',
+  'extension.js',
+  'styles.css',
+  'manifest.json',
+  'icon.png'
+];
+
+const missingFiles = criticalFiles.filter(
+  file => !fs.existsSync(path.join(distDir, file))
+);
+
+if (missingFiles.length > 0) {
+  console.error('\n❌ Build incomplete! Missing files:');
+  missingFiles.forEach(file => console.error(`   - ${file}`));
   process.exit(1);
+}
+
+// ============================================================================
+// SUCCESS
+// ============================================================================
+console.log('\n✅ Extension built successfully!\n');
+console.log('📦 Output files in dist/:');
+criticalFiles.forEach(file => {
+  const size = fs.statSync(path.join(distDir, file)).size;
+  const sizeKB = (size / 1024).toFixed(2);
+  console.log(`   - ${file} (${sizeKB} KB)`);
 });
+
+console.log('\n🔧 To load in Chrome:');
+console.log('   1. Open chrome://extensions/');
+console.log('   2. Enable "Developer mode"');
+console.log('   3. Click "Load unpacked"');
+console.log('   4. Select the "dist" folder\n');
+
+console.log(`📍 Dist folder: ${distDir}\n`);
