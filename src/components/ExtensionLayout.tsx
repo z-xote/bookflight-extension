@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { SessionModal } from './modals/SessionModal';
 import { SettingsModal } from './modals/SettingsModal';
@@ -8,6 +8,7 @@ import { FormView } from './FormView';
 import { ChatView } from './ChatView';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
+import { saveChatViewActive, loadChatViewActive, clearAllStorage } from '@/lib/storage';
 import type { FormSubmission } from '@/types';
 import { APP_VERSION } from '@/lib/config';
 
@@ -15,8 +16,29 @@ export function ExtensionLayout() {
   const [currentView, setCurrentView] = useState<'form' | 'chat'>('form');
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { context, resetContext } = useBookingContext();
-  const { addMessage, clearMessages } = useChatMessages();
+  const { addMessage, clearMessages, hydrateFromStorage, isHydrated } = useChatMessages();
+  
+  // Hydrate state from storage on mount
+  useEffect(() => {
+    const initializeApp = async () => {
+      // Load chat state first
+      await hydrateFromStorage();
+      
+      // Restore view state
+      const wasChatViewActive = await loadChatViewActive();
+      
+      // If chat was active, restore to chat view
+      if (wasChatViewActive) {
+        setCurrentView('chat');
+      }
+      
+      setIsInitialized(true);
+    };
+    
+    initializeApp();
+  }, []);
   
   const generateWelcomeMessage = (skipped: boolean = false) => {
     if (skipped) {
@@ -76,18 +98,21 @@ Just ask me anything about the booking process!`;
   
   const handleFormSubmit = (formData: FormSubmission) => {
     setCurrentView('chat');
+    saveChatViewActive(true);
     const welcomeMsg = generateWelcomeMessage(false);
     addMessage('assistant', welcomeMsg, formData);
   };
   
   const handleSkipForm = (formData: FormSubmission) => {
     setCurrentView('chat');
+    saveChatViewActive(true);
     const welcomeMsg = generateWelcomeMessage(true);
     addMessage('assistant', welcomeMsg, formData);
   };
   
   const handleEditContext = () => {
     setCurrentView('form');
+    saveChatViewActive(false);
   };
   
   const handleReset = () => {
@@ -97,9 +122,22 @@ Just ask me anything about the booking process!`;
   const confirmReset = () => {
     resetContext();
     clearMessages();
+    clearAllStorage();
     setCurrentView('form');
     setShowResetModal(false);
   };
+  
+  // Show loading state while hydrating
+  if (!isInitialized) {
+    return (
+      <div className="flex h-full items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500"></div>
+          <p className="text-sm text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50">

@@ -1,74 +1,89 @@
-- fix bookflight profile (plane logo)                                         [crox] 
+
 - edit previous message                                                       [crox] 
 
-
-- populate prompt with client data                                            [tick]
-- get a prototype version of prompt                                           [tick]
-- settings button on form page                                                [tick]
 - 3 dots, vertial, right of send button - access to tools modual              [tick]
 
+- pricing tool
+
+- availability scanner: new page, arrive from modal, 
+  find the most optimal route based on user needs. often will be cheapest
+
+
+
+--- focus ---
+
+
+- iframe extention, so can work alongside amadeus
+
+- keep context, even on close extension, until reset is specifically clicked.
 
 
 ---
 
-
-
-
-basically make a tools modual as well as one for settings.
+## Version Strategy: Breaking Down the Problem
 
 ---
 
-first off, we have to create a prompt that will understand the intent of our 
-extension. 
+## **v1.1.3 - State Persistence Foundation**
+**Focus:** Memory across popup sessions
 
-we should probably talk about the 5 stages to complete a PNR, as well as create
-a format for client details that can be sent to the ai, upon which guide mode is turned on. 
+**What it solves:**
+- Chat messages persist in chrome.storage.local
+- Form data survives popup close/reopen
+- View state (form vs chat) is remembered
+- User can click on webpage, reopen extension, and continue exactly where they left off
+
+**Why this first:**
+- Core infrastructure for persistence
+- No UI changes needed
+- Solves the "context loss" problem
+- Small, testable, low-risk change
+
+**Files to touch:**
+- Create: `src/lib/storage.ts`
+- Modify: `src/hooks/useChatMessages.ts`
+- Modify: `src/components/ExtensionLayout.tsx`
+- Update: `package.json` version
+- Update: `dist/manifest.json` version
 
 ---
 
-okay, so guide mode & chat mode. 
+## **v1.1.4 - Iframe Integration** 
+**Focus:** Extension stays visible (Honey-like behavior)
 
-we should create prompts for these 2, and depending on the trigger (the form format in user prompt)
+**What it solves:**
+- Extension doesn't close when clicking webpage
+- Renders as overlay/sidebar instead of popup
+- User can interact with both webpage AND extension simultaneously
 
+**Why this second:**
+- Builds on stable persistence layer from 1.1.3
+- Major architectural change (popup → iframe/sidebar)
+- Requires manifest changes (side_panel or content_script approach)
+- More complex, needs careful testing
+
+**Files to touch:**
+- Modify: `dist/manifest.json` (add content_scripts or side_panel)
+- Create: `src/content.ts` (if content script approach)
+- Create: `src/iframe.html` (embedded view)
+- Modify: Build process to handle new entry points
+- Possibly add toggle button for show/hide
 
 ---
 
-if form is present: switch to guide mode.
+## **v1.1.5 - Polish & UX Refinements**
+**Focus:** Smooth transitions and edge cases
 
-- lock "start booking" with required fields
-- allow to send form with "skip to chat" - but notify ai. 
+**What it solves:**
+- Loading states while hydrating from storage
+- Smooth animations for view transitions
+- Handle edge cases (storage quota, corrupted data)
+- Optional: Collapse/expand animation
+- Optional: Position settings (left/right/bottom)
 
-basically, moral of the story, notify ai about what the user clicked as well as the form. 
+**Why this last:**
+- Purely UX improvements
+- Non-critical enhancements
+- Can gather user feedback from 1.1.3 and 1.1.4 first
 
 ---
-
-fomrat:
-
-```form
-submission_type: (skipped form | filled form),
-passengers: [
-  "Mr. Arun Kumar",
-  "Mrs. Kriti Lata"
-],
-contact_info: {
-  "email": "bookflightfiji@gmail.com",
-  "phone": "+679 9274730"
-}
-travel_details: {
-  "origin": "",
-  "destination": "",
-  "departure": "",
-  "arrival": "",
-  "trip_type": "",
-}
-```
-
-version 1.1.0: populate prompt with client data.
-
---- 
-
-lets talk about which fields need to be "required" for guide mode?
-
-- passengers
-- phone
-- travel details

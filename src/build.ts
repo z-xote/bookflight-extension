@@ -81,7 +81,7 @@ await esbuild.build({
   entryPoints: [entryPath],
   bundle: true,
   outfile: path.join(distDir, 'extension.js'),
-  format: 'iife',
+  format: 'iife', // ✅ Keep IIFE for browser
   platform: 'browser',
   target: ['chrome100'],
   loader: {
@@ -92,15 +92,21 @@ await esbuild.build({
   },
   define: {
     'process.env.NODE_ENV': '"production"',
+    'global': 'globalThis', // ✅ FIX: Map global to globalThis for chrome API
   },
+  inject: [], // ✅ No shims needed
+  external: [], // ✅ Bundle everything, don't externalize
   minify: false,
   sourcemap: true,
   jsx: 'automatic',
   jsxImportSource: 'react',
   alias: {
-    // ✨ FIX: Use absolute path for cross-platform compatibility
-    'next/image': shimPath
-  }
+    'next/image': shimPath,
+    '@pkg': path.join(rootDir, 'package.json'), // ✅ FIX: Add package.json alias
+  },
+  // ✅ CRITICAL: Ensure React is bundled properly
+  conditions: ['browser', 'import', 'module'],
+  mainFields: ['browser', 'module', 'main'],
 }).then(() => {
   console.log('✓ JavaScript bundle created');
 }).catch((err) => {
@@ -117,7 +123,6 @@ console.log('⚙️  Compiling Tailwind CSS...');
 const inputCSS = path.join(rootDir, 'src', 'app', 'globals.css');
 const outputCSS = path.join(distDir, 'styles.css');
 
-// ✨ FIX: Platform-agnostic npx command (handles Windows .cmd)
 const isWindows = process.platform === 'win32';
 const npxCommand = isWindows ? 'npx.cmd' : 'npx';
 
@@ -126,7 +131,7 @@ try {
     `${npxCommand} tailwindcss -i "${inputCSS}" -o "${outputCSS}" --minify`,
     { 
       stdio: 'inherit',
-      cwd: rootDir // ✨ FIX: Explicit working directory
+      cwd: rootDir
     }
   );
   console.log('✓ CSS compiled with Tailwind');
@@ -219,7 +224,6 @@ fs.writeFileSync(
 );
 console.log(`✓ manifest.json created (v${packageJson.version})`);
 
-
 // ============================================================================
 // STEP 8.5: Create Version File
 // ============================================================================
@@ -228,7 +232,6 @@ fs.writeFileSync(
   `v${packageJson.version}`
 );
 console.log(`✓ version.txt created (v${packageJson.version})`);
-
 
 // ============================================================================
 // STEP 9: Verify Critical Files Exist
