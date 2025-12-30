@@ -15820,9 +15820,14 @@
     return twMerge(clsx(inputs));
   }
 
-  // src/components/Modal.tsx
+  // src/components/modals/BaseModal.tsx
   var import_jsx_runtime = __toESM(require_jsx_runtime());
-  function Modal({ isOpen, onClose, onConfirm }) {
+  var widthClasses = {
+    sm: "w-[300px]",
+    md: "w-[340px]",
+    lg: "w-[400px]"
+  };
+  function BaseModal({ isOpen, onClose, children, width = "md" }) {
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
       "div",
       {
@@ -15833,44 +15838,72 @@
         onClick: (e) => {
           if (e.target === e.currentTarget) onClose();
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: cn(
-          "bg-white rounded-xl px-6 py-6 w-[340px] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-transform duration-200",
+        children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: cn(
+          "bg-white rounded-xl px-6 py-6 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-transform duration-200",
+          widthClasses[width],
           isOpen ? "scale-100" : "scale-95"
-        ), children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", { className: "w-6 h-6 text-red-600", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M3 3v5h5" })
-          ] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { className: "text-lg font-bold text-gray-900 text-center mb-2", children: "Start New Booking?" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "text-sm text-gray-600 text-center leading-normal mb-6", children: "This will clear the current session and all conversation history. This action cannot be undone." }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "flex gap-3", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "button",
-              {
-                className: "flex-1 px-4 py-2.5 rounded-md text-sm font-semibold font-sans cursor-pointer transition-all border-none bg-gray-100 text-gray-700 hover:bg-gray-200",
-                onClick: onClose,
-                children: "Cancel"
-              }
-            ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-              "button",
-              {
-                className: "flex-1 px-4 py-2.5 rounded-md text-sm font-semibold font-sans cursor-pointer transition-all border-none bg-gradient-primary text-white shadow-sm hover:-translate-y-px hover:shadow-md",
-                onClick: onConfirm,
-                children: "Reset Session"
-              }
-            )
-          ] })
-        ] })
+        ), children })
       }
     );
+  }
+
+  // src/components/modals/SessionModal.tsx
+  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
+  function SessionModal({ isOpen, onClose, onConfirm }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(BaseModal, { isOpen, onClose, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("svg", { className: "w-6 h-6 text-red-600", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("path", { d: "M3 3v5h5" })
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h3", { className: "text-lg font-bold text-gray-900 text-center mb-2", children: "Start New Booking?" }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "text-sm text-gray-600 text-center leading-normal mb-6", children: "This will clear the current session and all conversation history. This action cannot be undone." }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "flex gap-3", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          "button",
+          {
+            className: "flex-1 px-4 py-2.5 rounded-md text-sm font-semibold font-sans cursor-pointer transition-all border-none bg-gray-100 text-gray-700 hover:bg-gray-200",
+            onClick: onClose,
+            children: "Cancel"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          "button",
+          {
+            className: "flex-1 px-4 py-2.5 rounded-md text-sm font-semibold font-sans cursor-pointer transition-all border-none bg-gradient-primary text-white shadow-sm hover:-translate-y-px hover:shadow-md",
+            onClick: onConfirm,
+            children: "Reset Session"
+          }
+        )
+      ] })
+    ] });
+  }
+
+  // src/components/modals/SettingsModal.tsx
+  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  function SettingsModal({ isOpen, onClose }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(BaseModal, { isOpen, onClose, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("svg", { className: "w-6 h-6 text-gray-600", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("circle", { cx: "12", cy: "12", r: "3" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("path", { d: "M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" })
+      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { className: "text-lg font-bold text-gray-900 text-center mb-2", children: "Settings" }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { className: "text-sm text-gray-500 text-center leading-normal mb-6", children: "Settings options coming soon." }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+        "button",
+        {
+          className: "w-full px-4 py-2.5 rounded-md text-sm font-semibold font-sans cursor-pointer transition-all border-none bg-gray-100 text-gray-700 hover:bg-gray-200",
+          onClick: onClose,
+          children: "Close"
+        }
+      )
+    ] });
   }
 
   // src/components/FormView.tsx
   var import_react3 = __toESM(require_react());
 
   // src/components/ui/Button.tsx
-  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
   function Button({
     variant = "primary",
     children,
@@ -15879,7 +15912,7 @@
     className,
     ...props
   }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       "button",
       {
         disabled,
@@ -15905,19 +15938,19 @@
   }
 
   // src/components/ui/Input.tsx
-  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   var inputStyles = "w-full px-3 py-2.5 border-[1.5px] border-gray-200 rounded-md text-[13px] font-sans text-gray-800 bg-white transition-all duration-200 focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100 placeholder:text-gray-400";
   function Input({ label, className, id, ...props }) {
-    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "flex flex-1 flex-col gap-1", children: [
-      label && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("label", { htmlFor: id, className: "text-xs font-semibold text-gray-700", children: label }),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("input", { id, className: cn(inputStyles, className), ...props })
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex flex-1 flex-col gap-1", children: [
+      label && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { htmlFor: id, className: "text-xs font-semibold text-gray-700", children: label }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("input", { id, className: cn(inputStyles, className), ...props })
     ] });
   }
   function Select({ label, options, className, id, ...props }) {
     const chevronSvg = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e";
-    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "flex flex-1 flex-col gap-1", children: [
-      label && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("label", { htmlFor: id, className: "text-xs font-semibold text-gray-700", children: label }),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex flex-1 flex-col gap-1", children: [
+      label && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { htmlFor: id, className: "text-xs font-semibold text-gray-700", children: label }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
         "select",
         {
           id,
@@ -15931,7 +15964,7 @@
             backgroundPosition: "right 12px center"
           },
           ...props,
-          children: options.map((opt) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("option", { value: opt.value, children: opt.label }, opt.value))
+          children: options.map((opt) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("option", { value: opt.value, children: opt.label }, opt.value))
         }
       )
     ] });
@@ -15992,7 +16025,7 @@
   }));
 
   // src/components/FormView.tsx
-  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
   var isBookingGuideReady = (passengers, formData) => {
     const hasValidPassenger = passengers.some(
       (p) => p.firstName.trim() && p.lastName.trim()
@@ -16097,16 +16130,16 @@
       if (e) e.preventDefault();
       handleSubmit(e);
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { ref: formViewRef, className: "flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-0 bg-gray-50", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "bg-gradient-soft border-b-[0.5px] border-gray-100 pb-3 pt-5 px-5", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h2", { className: "text-lg font-bold text-gray-900 mb-1.5", children: "New Booking Enquiry" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { className: "text-[13px] text-gray-600 leading-normal", children: "Fill in the customer details below to start your booking. All fields are optional \u2014 skip to chat anytime." })
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { ref: formViewRef, className: "flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-0 bg-gray-50", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "bg-gradient-soft border-b-[0.5px] border-gray-100 pb-3 pt-5 px-5", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h2", { className: "text-lg font-bold text-gray-900 mb-1.5", children: "New Booking Enquiry" }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { className: "text-[13px] text-gray-600 leading-normal", children: "Fill in the customer details below to start your booking. All fields are optional \u2014 skip to chat anytime." })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("form", { className: "flex flex-col gap-4 p-5 pb-28", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex flex-col gap-3", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Customer Details" }),
-          passengers.map((passenger, index) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "mb-3 last:mb-0", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex items-end gap-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "min-w-[70px] shrink-0 basis-[70px]", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("form", { className: "flex flex-col gap-4 p-5 pb-28", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex flex-col gap-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Customer Details" }),
+          passengers.map((passenger, index) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "mb-3 last:mb-0", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex items-end gap-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "min-w-[70px] shrink-0 basis-[70px]", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Select,
               {
                 label: index === 0 ? "Title" : "",
@@ -16123,7 +16156,7 @@
                 ]
               }
             ) }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "min-w-[100px] flex-1 basis-[110px]", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "min-w-[100px] flex-1 basis-[110px]", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: index === 0 ? "First Name" : "",
@@ -16133,7 +16166,7 @@
                 onChange: (e) => handleChange(e, passenger.id)
               }
             ) }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "min-w-[100px] flex-1 basis-[110px]", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "min-w-[100px] flex-1 basis-[110px]", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: index === 0 ? "Last Name" : "",
@@ -16143,40 +16176,40 @@
                 onChange: (e) => handleChange(e, passenger.id)
               }
             ) }),
-            passengers.length > 1 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            passengers.length > 1 && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               "button",
               {
                 type: "button",
                 className: "flex h-[42px] w-8 shrink-0 items-center justify-center rounded-md border-[1.5px] border-red-200 bg-white text-red-500 transition-all hover:bg-red-50 hover:border-red-400 hover:text-red-600",
                 onClick: () => handleRemovePassenger(passenger.id),
                 title: "Remove passenger",
-                children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("circle", { cx: "12", cy: "12", r: "10" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M15 9l-6 6M9 9l6 6" })
+                children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "12", cy: "12", r: "10" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M15 9l-6 6M9 9l6 6" })
                 ] })
               }
             )
           ] }) }, passenger.id)),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
             "button",
             {
               type: "button",
               className: "group mt-2 flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-gray-300 bg-transparent p-2.5 text-[11px] font-medium font-sans text-gray-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600",
               onClick: handleAddPassenger,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("svg", { className: "transition-transform group-hover:scale-110", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("circle", { cx: "12", cy: "12", r: "10" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M12 8v8M8 12h8" })
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { className: "transition-transform group-hover:scale-110", width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "12", cy: "12", r: "10" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M12 8v8M8 12h8" })
                 ] }),
                 "Add Another Passenger"
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex flex-col gap-3", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Contact Information" }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex gap-3", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex flex-col gap-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Contact Information" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "Email Address",
@@ -16187,7 +16220,7 @@
                 onChange: handleChange
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "Phone Number",
@@ -16200,10 +16233,10 @@
             )
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex flex-col gap-3", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Travel Details" }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex gap-3", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex flex-col gap-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "text-[11px] font-semibold uppercase tracking-[0.5px] text-red-600 pb-1 border-b-2 border-red-100", children: "Travel Details" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "From (Origin)",
@@ -16215,7 +16248,7 @@
                 onChange: handleChange
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "To (Destination)",
@@ -16228,8 +16261,8 @@
               }
             )
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex gap-3", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "Departure Date",
@@ -16239,7 +16272,7 @@
                 onChange: handleChange
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               Input,
               {
                 label: "Return Date",
@@ -16250,7 +16283,7 @@
               }
             )
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "w-full", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "w-full", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             Select,
             {
               label: "Trip Type",
@@ -16266,12 +16299,12 @@
           ) })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: cn(
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: cn(
         "fixed bottom-0 left-0 right-0 z-20 flex gap-2.5 p-5 bg-white border-t border-gray-200 transition-all duration-200",
         isNearBottom ? "shadow-none" : "shadow-sticky-footer before:content-[''] before:absolute before:-top-10 before:left-0 before:right-0 before:h-10 before:bg-gradient-to-b before:from-transparent before:to-white before:pointer-events-none"
       ), children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Button, { type: "button", variant: "secondary", onClick: handleSkipToChat, children: "Skip to Chat" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Button, { type: "button", variant: "secondary", onClick: handleSkipToChat, children: "Skip to Chat" }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
           Button,
           {
             type: "button",
@@ -16280,9 +16313,9 @@
             disabled: !isGuideReady,
             title: !isGuideReady ? "Fill required fields: passengers, phone, travel details" : "",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "M5 12h14" }),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("path", { d: "m12 5 7 7-7 7" })
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M5 12h14" }),
+                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "m12 5 7 7-7 7" })
               ] }),
               "Booking Guide"
             ]
@@ -16469,15 +16502,15 @@
   }
 
   // src/components/Message.tsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   function Message({ message }) {
     const bubbleRef = (0, import_react4.useRef)(null);
     const { role, content, timestamp } = message;
     const name = role === "assistant" ? "Bookflight Guide" : "You";
     const time = formatTime(timestamp);
-    const avatar = role === "assistant" ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
+    const avatar = role === "assistant" ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
     ] });
     const renderedContent = role === "assistant" ? parseMarkdown(content) : escapeHtml(content);
     (0, import_react4.useEffect)(() => {
@@ -16509,17 +16542,17 @@
         });
       }
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: cn(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: cn(
         "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0",
         role === "assistant" ? "bg-gradient-primary text-white" : "bg-gray-200 text-gray-600"
       ), children: avatar }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex-1 min-w-0", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex items-center gap-2 mb-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "text-xs font-semibold text-gray-700", children: name }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "text-[10px] text-gray-400", children: time })
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex-1 min-w-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex items-center gap-2 mb-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "text-xs font-semibold text-gray-700", children: name }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "text-[10px] text-gray-400", children: time })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
           "div",
           {
             ref: bubbleRef,
@@ -16537,7 +16570,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.1.0",
+    version: "1.1.1",
     private: true,
     scripts: {
       dev: "next dev",
@@ -16694,7 +16727,7 @@
   }
 
   // src/components/ChatView.tsx
-  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
   function ChatView({ onEditContext }) {
     const { messages, isTyping, sendMessage } = useChatMessages();
     const { context } = useBookingContext();
@@ -16733,10 +16766,10 @@
       if (context.firstName || context.lastName) {
         const name = [context.firstName, context.lastName].filter(Boolean).join(" ");
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
             ] }),
             name
           ] }, "name")
@@ -16744,8 +16777,8 @@
       }
       if (context.origin && context.destination) {
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }),
             context.origin,
             " \u2192 ",
             context.destination
@@ -16756,10 +16789,10 @@
         const date = new Date(context.departDate);
         const formatted = date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("rect", { x: "3", y: "4", width: "18", height: "18", rx: "2" }),
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M16 2v4M8 2v4M3 10h18" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("rect", { x: "3", y: "4", width: "18", height: "18", rx: "2" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M16 2v4M8 2v4M3 10h18" })
             ] }),
             formatted
           ] }, "date")
@@ -16767,20 +16800,20 @@
       }
       if (context.paxCount && context.paxCount !== "1") {
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("circle", { cx: "9", cy: "7", r: "4" }),
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "9", cy: "7", r: "4" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" })
             ] }),
             context.paxCount,
             " Pax"
           ] }, "pax")
         );
       }
-      return tags.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "px-4 py-2.5 bg-white border-b border-gray-200 flex items-center gap-2 flex-wrap", children: [
+      return tags.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "px-4 py-2.5 bg-white border-b border-gray-200 flex items-center gap-2 flex-wrap", children: [
         tags,
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
           "button",
           {
             className: "ml-auto px-2.5 py-1 bg-transparent border border-gray-300 rounded-full text-[11px] text-gray-600 cursor-pointer font-sans font-medium transition-all hover:bg-gray-100 hover:border-gray-400",
@@ -16790,22 +16823,22 @@
         )
       ] }) : null;
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
       renderContextBar(),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 flex flex-col gap-4", children: [
-        messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Message, { message: msg }, msg.id)),
-        isTyping && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-gradient-primary text-white", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "flex-1 min-w-0", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "px-3.5 py-3 rounded-md text-[13px] leading-relaxed bg-white border border-gray-200 shadow-sm", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-1 py-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing" }),
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.2s]" }),
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.4s]" })
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 flex flex-col gap-4", children: [
+        messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Message, { message: msg }, msg.id)),
+        isTyping && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-gradient-primary text-white", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-1 min-w-0", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "px-3.5 py-3 rounded-md text-[13px] leading-relaxed bg-white border border-gray-200 shadow-sm", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-1 py-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing" }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.2s]" }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.4s]" })
           ] }) }) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { ref: messagesEndRef })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { ref: messagesEndRef })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "px-4 py-3 pb-4 bg-white border-t border-gray-200", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "flex gap-1.5 mb-2.5 flex-wrap", children: QUICK_ACTIONS.map((qa) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "px-4 py-3 pb-4 bg-white border-t border-gray-200", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex gap-1.5 mb-2.5 flex-wrap", children: QUICK_ACTIONS.map((qa) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
           "button",
           {
             className: "px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full text-[11px] text-gray-700 cursor-pointer font-sans font-medium transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-700",
@@ -16814,8 +16847,8 @@
           },
           qa.action
         )) }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex gap-2.5 items-end", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-2.5 items-end", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
             "textarea",
             {
               ref: inputRef,
@@ -16828,7 +16861,7 @@
               onInput: handleInput
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
             "button",
             {
               className: cn(
@@ -16837,9 +16870,9 @@
               ),
               onClick: handleSend,
               disabled: !inputValue.trim() || isTyping,
-              children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "m22 2-7 20-4-9-9-4 20-7Z" }),
-                /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "M22 2 11 13" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "m22 2-7 20-4-9-9-4 20-7Z" }),
+                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M22 2 11 13" })
               ] })
             }
           )
@@ -16849,10 +16882,11 @@
   }
 
   // src/components/ExtensionLayout.tsx
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   function ExtensionLayout() {
     const [currentView, setCurrentView] = (0, import_react6.useState)("form");
     const [showResetModal, setShowResetModal] = (0, import_react6.useState)(false);
+    const [showSettingsModal, setShowSettingsModal] = (0, import_react6.useState)(false);
     const { context, resetContext } = useBookingContext();
     const { addMessage, clearMessages } = useChatMessages();
     const generateWelcomeMessage = (skipped = false) => {
@@ -16946,9 +16980,9 @@ What would you like help with? I can guide you through:
       setCurrentView("form");
       setShowResetModal(false);
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           Image,
           {
             className: "w-7 h-7 block object-contain",
@@ -16958,52 +16992,70 @@ What would you like help with? I can guide you through:
             height: 28
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
           "v",
           APP_VERSION
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        currentView === "form" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          "button",
+          {
+            className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
+            onClick: () => setShowSettingsModal(true),
+            title: "Settings",
+            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "12", r: "3" })
+            ] })
+          }
+        ) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           "button",
           {
             className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
             onClick: handleReset,
             title: "New Booking",
-            children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
-              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
             ] })
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
-        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
+        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           FormView,
           {
             onSubmit: handleFormSubmit,
             onSkip: handleSkipForm
           }
         ),
-        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(ChatView, { onEditContext: handleEditContext })
+        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(ChatView, { onEditContext: handleEditContext })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-        Modal,
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        SessionModal,
         {
           isOpen: showResetModal,
           onClose: () => setShowResetModal(false),
           onConfirm: confirmReset
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        SettingsModal,
+        {
+          isOpen: showSettingsModal,
+          onClose: () => setShowSettingsModal(false)
         }
       )
     ] });
   }
 
   // src/app/page.tsx
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
   function Home() {
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ExtensionLayout, {});
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(ExtensionLayout, {});
   }
 
   // src/entry.tsx
