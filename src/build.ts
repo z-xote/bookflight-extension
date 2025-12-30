@@ -219,6 +219,17 @@ fs.writeFileSync(
 );
 console.log(`✓ manifest.json created (v${packageJson.version})`);
 
+
+// ============================================================================
+// STEP 8.5: Create Version File
+// ============================================================================
+fs.writeFileSync(
+  path.join(distDir, 'version.txt'),
+  `v${packageJson.version}`
+);
+console.log(`✓ version.txt created (v${packageJson.version})`);
+
+
 // ============================================================================
 // STEP 9: Verify Critical Files Exist
 // ============================================================================
@@ -227,7 +238,8 @@ const criticalFiles = [
   'extension.js',
   'styles.css',
   'manifest.json',
-  'icon.png'
+  'icon.png',
+  'version.txt'
 ];
 
 const missingFiles = criticalFiles.filter(
