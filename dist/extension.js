@@ -16570,7 +16570,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.1.1",
+    version: "1.1.2",
     private: true,
     scripts: {
       dev: "next dev",
