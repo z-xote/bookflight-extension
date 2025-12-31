@@ -16570,7 +16570,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.1.2",
+    version: "1.2.0",
     private: true,
     scripts: {
       dev: "next dev",
@@ -16581,6 +16581,7 @@
     },
     dependencies: {
       "@tailwindcss/typography": "^0.5.19",
+      bfg: ".",
       clsx: "^2.1.1",
       esbuild: "^0.27.2",
       next: "16.1.0",
@@ -16591,6 +16592,7 @@
       zustand: "^5.0.9"
     },
     devDependencies: {
+      "@types/chrome": "^0.1.32",
       "@types/node": "^20",
       "@types/react": "^19",
       "@types/react-dom": "^19",
@@ -16665,13 +16667,226 @@
     }
   }
 
+  // src/lib/storage.ts
+  var STORAGE_KEYS = {
+    MESSAGES: "bfg-messages",
+    FORM_DATA: "bfg-form-data",
+    IS_FIRST_MESSAGE: "bfg-is-first-message",
+    CHAT_VIEW_ACTIVE: "bfg-chat-view-active"
+  };
+  function getChromeStorage() {
+    if (typeof globalThis !== "undefined" && "chrome" in globalThis) {
+      const g = globalThis;
+      return g.chrome?.storage?.local ?? null;
+    }
+    return null;
+  }
+  async function saveMessages(messages) {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      console.warn("Chrome storage not available, using localStorage fallback");
+      try {
+        localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+      } catch (error) {
+        console.error("Failed to save to localStorage:", error);
+      }
+      return;
+    }
+    try {
+      await chromeStorage.set({
+        [STORAGE_KEYS.MESSAGES]: messages
+      });
+    } catch (error) {
+      console.error("Failed to save messages:", error);
+    }
+  }
+  async function loadMessages() {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      console.warn("Chrome storage not available, using localStorage fallback");
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+        if (!stored) return [];
+        const messages = JSON.parse(stored);
+        return Array.isArray(messages) ? messages.map((msg) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        })) : [];
+      } catch (error) {
+        console.error("Failed to load from localStorage:", error);
+        return [];
+      }
+    }
+    try {
+      const result = await chromeStorage.get(STORAGE_KEYS.MESSAGES);
+      const messages = result[STORAGE_KEYS.MESSAGES];
+      if (!Array.isArray(messages)) return [];
+      return messages.map((msg) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+    } catch (error) {
+      console.error("Failed to load messages:", error);
+      return [];
+    }
+  }
+  async function saveFormData(formData) {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.FORM_DATA, JSON.stringify(formData));
+      } catch (error) {
+        console.error("Failed to save to localStorage:", error);
+      }
+      return;
+    }
+    try {
+      await chromeStorage.set({
+        [STORAGE_KEYS.FORM_DATA]: formData
+      });
+    } catch (error) {
+      console.error("Failed to save form data:", error);
+    }
+  }
+  async function loadFormData() {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.FORM_DATA);
+        return stored ? JSON.parse(stored) : null;
+      } catch (error) {
+        console.error("Failed to load from localStorage:", error);
+        return null;
+      }
+    }
+    try {
+      const result = await chromeStorage.get(STORAGE_KEYS.FORM_DATA);
+      const formData = result[STORAGE_KEYS.FORM_DATA];
+      return formData && typeof formData === "object" && "submission_type" in formData ? formData : null;
+    } catch (error) {
+      console.error("Failed to load form data:", error);
+      return null;
+    }
+  }
+  async function saveIsFirstMessage(isFirst) {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.IS_FIRST_MESSAGE, JSON.stringify(isFirst));
+      } catch (error) {
+        console.error("Failed to save to localStorage:", error);
+      }
+      return;
+    }
+    try {
+      await chromeStorage.set({
+        [STORAGE_KEYS.IS_FIRST_MESSAGE]: isFirst
+      });
+    } catch (error) {
+      console.error("Failed to save first message flag:", error);
+    }
+  }
+  async function loadIsFirstMessage() {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.IS_FIRST_MESSAGE);
+        return stored ? JSON.parse(stored) : true;
+      } catch (error) {
+        console.error("Failed to load from localStorage:", error);
+        return true;
+      }
+    }
+    try {
+      const result = await chromeStorage.get(STORAGE_KEYS.IS_FIRST_MESSAGE);
+      const value = result[STORAGE_KEYS.IS_FIRST_MESSAGE];
+      return typeof value === "boolean" ? value : true;
+    } catch (error) {
+      console.error("Failed to load first message flag:", error);
+      return true;
+    }
+  }
+  async function saveChatViewActive(isActive) {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE, JSON.stringify(isActive));
+      } catch (error) {
+        console.error("Failed to save to localStorage:", error);
+      }
+      return;
+    }
+    try {
+      await chromeStorage.set({
+        [STORAGE_KEYS.CHAT_VIEW_ACTIVE]: isActive
+      });
+    } catch (error) {
+      console.error("Failed to save chat view state:", error);
+    }
+  }
+  async function loadChatViewActive() {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
+        return stored ? JSON.parse(stored) : false;
+      } catch (error) {
+        console.error("Failed to load from localStorage:", error);
+        return false;
+      }
+    }
+    try {
+      const result = await chromeStorage.get(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
+      const value = result[STORAGE_KEYS.CHAT_VIEW_ACTIVE];
+      return typeof value === "boolean" ? value : false;
+    } catch (error) {
+      console.error("Failed to load chat view state:", error);
+      return false;
+    }
+  }
+  async function clearAllStorage() {
+    const chromeStorage = getChromeStorage();
+    if (!chromeStorage) {
+      try {
+        Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+      } catch (error) {
+        console.error("Failed to clear localStorage:", error);
+      }
+      return;
+    }
+    try {
+      await chromeStorage.remove(Object.values(STORAGE_KEYS));
+    } catch (error) {
+      console.error("Failed to clear storage:", error);
+    }
+  }
+
   // src/hooks/useChatMessages.ts
   var useChatMessages = create((set, get) => ({
     messages: [],
     isTyping: false,
     formData: null,
     isFirstMessage: true,
-    // INITIALIZE
+    isHydrated: false,
+    // NEW: Hydrate state from chrome.storage on mount
+    hydrateFromStorage: async () => {
+      try {
+        const [messages, formData, isFirstMessage] = await Promise.all([
+          loadMessages(),
+          loadFormData(),
+          loadIsFirstMessage()
+        ]);
+        set({
+          messages,
+          formData,
+          isFirstMessage,
+          isHydrated: true
+        });
+      } catch (error) {
+        console.error("Failed to hydrate from storage:", error);
+        set({ isHydrated: true });
+      }
+    },
     addMessage: (role, content, formData) => {
       const message = {
         id: Date.now().toString(),
@@ -16679,11 +16894,19 @@
         content,
         timestamp: /* @__PURE__ */ new Date()
       };
-      set((state) => ({
-        messages: [...state.messages, message],
-        ...formData && { formData, isFirstMessage: true }
-        // RESET FLAG WHEN FORM PROVIDED
-      }));
+      set((state) => {
+        const newMessages = [...state.messages, message];
+        const newState = {
+          messages: newMessages,
+          ...formData && { formData, isFirstMessage: true }
+        };
+        saveMessages(newMessages);
+        if (formData) {
+          saveFormData(formData);
+          saveIsFirstMessage(true);
+        }
+        return newState;
+      });
     },
     sendMessage: async (text) => {
       const { addMessage, formData, isFirstMessage } = get();
@@ -16696,11 +16919,12 @@
       if (isFirstMessage) {
         messageToSend = buildMessageWithContext(text, formData);
         set({ isFirstMessage: false });
+        saveIsFirstMessage(false);
       }
       addMessage("user", text);
       set({ isTyping: true });
       try {
-        const aiResponse = await sendToN8N(messageToSend, formData.submission_type);
+        const aiResponse = await sendToN8N(messageToSend, formData);
         addMessage("assistant", aiResponse);
       } catch (error) {
         console.error("Error sending message:", error);
@@ -16709,7 +16933,12 @@
         set({ isTyping: false });
       }
     },
-    clearMessages: () => set({ messages: [], formData: null, isFirstMessage: true })
+    clearMessages: () => {
+      set({ messages: [], formData: null, isFirstMessage: true });
+      saveMessages([]);
+      saveFormData(null);
+      saveIsFirstMessage(true);
+    }
   }));
   function buildMessageWithContext(message, formData) {
     const passengers = formData.passengers.filter((p) => p.firstName && p.lastName).map((p) => `${p.title} ${p.firstName} ${p.lastName}`.trim()).join(", ");
@@ -16887,8 +17116,20 @@
     const [currentView, setCurrentView] = (0, import_react6.useState)("form");
     const [showResetModal, setShowResetModal] = (0, import_react6.useState)(false);
     const [showSettingsModal, setShowSettingsModal] = (0, import_react6.useState)(false);
+    const [isInitialized, setIsInitialized] = (0, import_react6.useState)(false);
     const { context, resetContext } = useBookingContext();
-    const { addMessage, clearMessages } = useChatMessages();
+    const { addMessage, clearMessages, hydrateFromStorage, isHydrated } = useChatMessages();
+    (0, import_react6.useEffect)(() => {
+      const initializeApp = async () => {
+        await hydrateFromStorage();
+        const wasChatViewActive = await loadChatViewActive();
+        if (wasChatViewActive) {
+          setCurrentView("chat");
+        }
+        setIsInitialized(true);
+      };
+      initializeApp();
+    }, []);
     const generateWelcomeMessage = (skipped = false) => {
       if (skipped) {
         return `## Welcome to Bookflight Guide! \u2708\uFE0F
@@ -16960,16 +17201,19 @@ What would you like help with? I can guide you through:
     };
     const handleFormSubmit = (formData) => {
       setCurrentView("chat");
+      saveChatViewActive(true);
       const welcomeMsg = generateWelcomeMessage(false);
       addMessage("assistant", welcomeMsg, formData);
     };
     const handleSkipForm = (formData) => {
       setCurrentView("chat");
+      saveChatViewActive(true);
       const welcomeMsg = generateWelcomeMessage(true);
       addMessage("assistant", welcomeMsg, formData);
     };
     const handleEditContext = () => {
       setCurrentView("form");
+      saveChatViewActive(false);
     };
     const handleReset = () => {
       setShowResetModal(true);
@@ -16977,9 +17221,16 @@ What would you like help with? I can guide you through:
     const confirmReset = () => {
       resetContext();
       clearMessages();
+      clearAllStorage();
       setCurrentView("form");
       setShowResetModal(false);
     };
+    if (!isInitialized) {
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex h-full items-center justify-center bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500" }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm text-gray-600", children: "Loading..." })
+      ] }) });
+    }
     return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
       /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
