@@ -1,0 +1,68 @@
+/* Container for iframe and toggle button */
+#bfg-extension-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#bfg-extension-toggle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -3px rgba(220, 38, 38, 0.4);
+  display: flex;
+  margin-top: 10px;
+  margin-right: 10px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: white;
+  padding: 0; /* Add this */
+}
+
+#bfg-extension-toggle svg {
+  display: block; /* Add this to remove inline spacing */
+}
+
+#bfg-extension-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px -3px rgba(220, 38, 38, 0.5);
+}
+
+#bfg-extension-toggle:active {
+  background: linear-gradient(135deg, #991B1B 0%, #7F1D1D 100%);
+  transform: scale(0.98);
+  transition: all 0.1s ease;
+}
+
+#bfg-extension-toggle.active {
+  background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+}
+
+#bfg-extension-iframe {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 420px;
+  height: 600px;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: white;
+  z-index: 2147483646;
+}
+
+@media (max-width: 500px) {
+  #bfg-extension-iframe {
+    width: calc(100vw - 40px);
+    right: 20px;
+  }
+}

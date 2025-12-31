@@ -16570,7 +16570,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.1.2",
+    version: "1.1.4",
     private: true,
     scripts: {
       dev: "next dev",
@@ -16581,6 +16581,7 @@
     },
     dependencies: {
       "@tailwindcss/typography": "^0.5.19",
+      bfg: ".",
       clsx: "^2.1.1",
       esbuild: "^0.27.2",
       next: "16.1.0",
@@ -16675,7 +16676,8 @@
   };
   function getChromeStorage() {
     if (typeof globalThis !== "undefined" && "chrome" in globalThis) {
-      return globalThis.chrome?.storage?.local;
+      const g = globalThis;
+      return g.chrome?.storage?.local ?? null;
     }
     return null;
   }

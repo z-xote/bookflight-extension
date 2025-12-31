@@ -116,6 +116,35 @@ await esbuild.build({
 });
 
 // ============================================================================
+// STEP 4.5: Build Content Script
+// ============================================================================
+console.log('⚙️  Bundling content script...');
+
+await esbuild.build({
+  entryPoints: [path.join(rootDir, 'src', 'content.ts')],
+  bundle: true,
+  outfile: path.join(distDir, 'content.js'),
+  format: 'iife',
+  platform: 'browser',
+  target: ['chrome100'],
+  minify: false,
+  sourcemap: true,
+}).then(() => {
+  console.log('✓ Content script bundle created');
+}).catch((err) => {
+  console.error('❌ Content script build failed:');
+  console.error(err);
+  process.exit(1);
+});
+
+// Copy content.css
+const contentCSS = path.join(rootDir, 'src', 'content.css');
+if (fs.existsSync(contentCSS)) {
+  fs.copyFileSync(contentCSS, path.join(distDir, 'content.css'));
+  console.log('✓ Content CSS copied');
+}
+
+// ============================================================================
 // STEP 5: Compile Tailwind CSS
 // ============================================================================
 console.log('⚙️  Compiling Tailwind CSS...');
@@ -215,6 +244,22 @@ const manifest = {
   ],
   "host_permissions": [
     "https://api.anthropic.com/*"
+  ],
+  // ✨ NEW: Content script injection
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  // ✨ NEW: Make extension.html accessible from iframe
+  "web_accessible_resources": [
+    {
+      "resources": ["extension.html", "styles.css", "extension.js", "*.png"],
+      "matches": ["<all_urls>"]
+    }
   ]
 };
 
@@ -239,6 +284,8 @@ console.log(`✓ version.txt created (v${packageJson.version})`);
 const criticalFiles = [
   'extension.html',
   'extension.js',
+  'content.js',  
+  'content.css',    
   'styles.css',
   'manifest.json',
   'icon.png',
