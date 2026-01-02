@@ -16524,7 +16524,7 @@
           chip.textContent = "Amadeus";
           chip.addEventListener("click", async () => {
             const codeEl = pre.querySelector("code");
-            const text = (codeEl?.innerText ?? pre.innerText ?? "").trim();
+            const text = (codeEl?.textContent ?? pre.textContent ?? "").trim();
             try {
               await navigator.clipboard.writeText(text);
               chip.textContent = "Copied!";
@@ -16532,6 +16532,7 @@
                 chip.textContent = "Amadeus";
               }, 900);
             } catch (err) {
+              console.error("Copy failed:", err);
               chip.textContent = "Failed";
               setTimeout(() => {
                 chip.textContent = "Amadeus";
@@ -16541,7 +16542,7 @@
           pre.appendChild(chip);
         });
       }
-    });
+    }, [role, content]);
     return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: cn(
         "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0",
@@ -16567,10 +16568,72 @@
     ] });
   }
 
+  // src/components/modals/ToolsMenuModal.tsx
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  function ToolsMenuModal({ isOpen, onClose, tools, onSelectTool }) {
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(BaseModal, { isOpen, onClose, width: "sm", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "mb-3", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { className: "text-base font-bold text-gray-900", children: "Tools" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: "text-[11px] text-gray-500 mt-0.5", children: "Select a booking tool" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex flex-col gap-1.5", children: tools.map((tool) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        "button",
+        {
+          onClick: () => {
+            onSelectTool(tool.id);
+            onClose();
+          },
+          className: "group w-full text-left px-3 py-2.5 rounded-md border border-gray-200 bg-white transition-all hover:border-red-300 hover:bg-red-50",
+          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "text-xl flex-shrink-0", children: tool.icon }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-1 min-w-0", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h3", { className: "text-[13px] font-semibold text-gray-900 group-hover:text-red-700 transition-colors", children: tool.name }),
+              tool.hasChatbar && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "flex-shrink-0 w-1.5 h-1.5 bg-red-500 rounded-full", title: "AI Assisted" })
+            ] }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-shrink-0 text-gray-300 group-hover:text-red-500 transition-colors", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) })
+          ] })
+        },
+        tool.id
+      )) })
+    ] });
+  }
+
+  // src/lib/tools.ts
+  var AVAILABLE_TOOLS = [
+    {
+      id: "availability",
+      name: "Availability Search",
+      description: "Search for available flights using Amadeus commands with AI assistance",
+      icon: "\u2708\uFE0F",
+      hasChatbar: true
+    },
+    {
+      id: "pricing",
+      name: "Pricing Calculator",
+      description: "Calculate fare quotes and pricing for bookings",
+      icon: "\u{1F4B0}",
+      hasChatbar: false
+    },
+    {
+      id: "pnr-builder",
+      name: "PNR Builder",
+      description: "Build and validate PNR records step-by-step",
+      icon: "\u{1F4CB}",
+      hasChatbar: true
+    },
+    {
+      id: "seat-map",
+      name: "Seat Map Viewer",
+      description: "View and select seats with visual seat maps",
+      icon: "\u{1F4BA}",
+      hasChatbar: false
+    }
+  ];
+
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.2.0",
+    version: "1.2.1",
     private: true,
     scripts: {
       dev: "next dev",
@@ -16628,8 +16691,8 @@
   };
   var QUICK_ACTIONS = [
     { label: "Check Availability", action: "Check availability" },
-    { label: "Help with Pricing", action: "Help with pricing" },
-    { label: "How to Sell", action: "How do I sell a seat?" },
+    { label: "Pricing", action: "Help with pricing" },
+    { label: "Sell Seats", action: "How do I sell a seat?" },
     { label: "PNR Checklist", action: "PNR checklist" }
   ];
   var APP_VERSION = package_default.version;
@@ -16672,7 +16735,7 @@
     MESSAGES: "bfg-messages",
     FORM_DATA: "bfg-form-data",
     IS_FIRST_MESSAGE: "bfg-is-first-message",
-    CHAT_VIEW_ACTIVE: "bfg-chat-view-active"
+    CURRENT_VIEW: "bfg-current-view"
   };
   function getChromeStorage() {
     if (typeof globalThis !== "undefined" && "chrome" in globalThis) {
@@ -16806,11 +16869,11 @@
       return true;
     }
   }
-  async function saveChatViewActive(isActive) {
+  async function saveCurrentView(view) {
     const chromeStorage = getChromeStorage();
     if (!chromeStorage) {
       try {
-        localStorage.setItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE, JSON.stringify(isActive));
+        localStorage.setItem(STORAGE_KEYS.CURRENT_VIEW, view);
       } catch (error) {
         console.error("Failed to save to localStorage:", error);
       }
@@ -16818,30 +16881,31 @@
     }
     try {
       await chromeStorage.set({
-        [STORAGE_KEYS.CHAT_VIEW_ACTIVE]: isActive
+        [STORAGE_KEYS.CURRENT_VIEW]: view
       });
     } catch (error) {
-      console.error("Failed to save chat view state:", error);
+      console.error("Failed to save current view:", error);
     }
   }
-  async function loadChatViewActive() {
+  async function loadCurrentView() {
     const chromeStorage = getChromeStorage();
     if (!chromeStorage) {
       try {
-        const stored = localStorage.getItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
-        return stored ? JSON.parse(stored) : false;
+        const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_VIEW);
+        const view = stored;
+        return view === "form" || view === "chat" || view === "tools" ? view : "form";
       } catch (error) {
         console.error("Failed to load from localStorage:", error);
-        return false;
+        return "form";
       }
     }
     try {
-      const result = await chromeStorage.get(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
-      const value = result[STORAGE_KEYS.CHAT_VIEW_ACTIVE];
-      return typeof value === "boolean" ? value : false;
+      const result = await chromeStorage.get(STORAGE_KEYS.CURRENT_VIEW);
+      const view = result[STORAGE_KEYS.CURRENT_VIEW];
+      return view === "form" || view === "chat" || view === "tools" ? view : "form";
     } catch (error) {
-      console.error("Failed to load chat view state:", error);
-      return false;
+      console.error("Failed to load current view:", error);
+      return "form";
     }
   }
   async function clearAllStorage() {
@@ -16956,11 +17020,12 @@
   }
 
   // src/components/ChatView.tsx
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
-  function ChatView({ onEditContext }) {
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+  function ChatView({ onEditContext, onOpenTool }) {
     const { messages, isTyping, sendMessage } = useChatMessages();
     const { context } = useBookingContext();
     const [inputValue, setInputValue] = (0, import_react5.useState)("");
+    const [showToolsMenu, setShowToolsMenu] = (0, import_react5.useState)(false);
     const messagesEndRef = (0, import_react5.useRef)(null);
     const inputRef = (0, import_react5.useRef)(null);
     (0, import_react5.useEffect)(() => {
@@ -16990,15 +17055,19 @@
     const handleQuickAction = async (action) => {
       await sendMessage(action);
     };
+    const handleSelectTool = (toolId) => {
+      setShowToolsMenu(false);
+      onOpenTool(toolId);
+    };
     const renderContextBar = () => {
       const tags = [];
       if (context.firstName || context.lastName) {
         const name = [context.firstName, context.lastName].filter(Boolean).join(" ");
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
             ] }),
             name
           ] }, "name")
@@ -17006,8 +17075,8 @@
       }
       if (context.origin && context.destination) {
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }),
             context.origin,
             " \u2192 ",
             context.destination
@@ -17018,10 +17087,10 @@
         const date = new Date(context.departDate);
         const formatted = date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("rect", { x: "3", y: "4", width: "18", height: "18", rx: "2" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M16 2v4M8 2v4M3 10h18" })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("rect", { x: "3", y: "4", width: "18", height: "18", rx: "2" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M16 2v4M8 2v4M3 10h18" })
             ] }),
             formatted
           ] }, "date")
@@ -17029,20 +17098,20 @@
       }
       if (context.paxCount && context.paxCount !== "1") {
         tags.push(
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("circle", { cx: "9", cy: "7", r: "4" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "9", cy: "7", r: "4" }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" })
             ] }),
             context.paxCount,
             " Pax"
           ] }, "pax")
         );
       }
-      return tags.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "px-4 py-2.5 bg-white border-b border-gray-200 flex items-center gap-2 flex-wrap", children: [
+      return tags.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "px-4 py-2.5 bg-white border-b border-gray-200 flex items-center gap-2 flex-wrap", children: [
         tags,
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           "button",
           {
             className: "ml-auto px-2.5 py-1 bg-transparent border border-gray-300 rounded-full text-[11px] text-gray-600 cursor-pointer font-sans font-medium transition-all hover:bg-gray-100 hover:border-gray-400",
@@ -17052,22 +17121,22 @@
         )
       ] }) : null;
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
       renderContextBar(),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 flex flex-col gap-4", children: [
-        messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Message, { message: msg }, msg.id)),
-        isTyping && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-gradient-primary text-white", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-1 min-w-0", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "px-3.5 py-3 rounded-md text-[13px] leading-relaxed bg-white border border-gray-200 shadow-sm", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-1 py-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing" }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.2s]" }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.4s]" })
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 flex flex-col gap-4", children: [
+        messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Message, { message: msg }, msg.id)),
+        isTyping && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex gap-2.5 animate-messageIn", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 bg-gradient-primary text-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M5 12h14M12 5l7 7-7 7" }) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-1 min-w-0", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "px-3.5 py-3 rounded-md text-[13px] leading-relaxed bg-white border border-gray-200 shadow-sm", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex gap-1 py-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.2s]" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "w-2 h-2 bg-red-400 rounded-full animate-typing [animation-delay:0.4s]" })
           ] }) }) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { ref: messagesEndRef })
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { ref: messagesEndRef })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "px-4 py-3 pb-4 bg-white border-t border-gray-200", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex gap-1.5 mb-2.5 flex-wrap", children: QUICK_ACTIONS.map((qa) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "px-4 py-3 pb-4 bg-white border-t border-gray-200", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex gap-1.5 mb-2.5 flex-wrap", children: QUICK_ACTIONS.map((qa) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
           "button",
           {
             className: "px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full text-[11px] text-gray-700 cursor-pointer font-sans font-medium transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-700",
@@ -17076,8 +17145,8 @@
           },
           qa.action
         )) }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-2.5 items-end", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex gap-[9px] items-end", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             "textarea",
             {
               ref: inputRef,
@@ -17090,7 +17159,20 @@
               onInput: handleInput
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+            "button",
+            {
+              onClick: () => setShowToolsMenu(true),
+              className: "w-8 h-11 flex items-center justify-center rounded-md border-[1.5px] border-gray-200 bg-white text-gray-600 transition-all hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900",
+              title: "Open Tools",
+              children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "12", r: "1" }),
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "5", r: "1" }),
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "19", r: "1" })
+              ] })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             "button",
             {
               className: cn(
@@ -17099,33 +17181,89 @@
               ),
               onClick: handleSend,
               disabled: !inputValue.trim() || isTyping,
-              children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "m22 2-7 20-4-9-9-4 20-7Z" }),
-                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("path", { d: "M22 2 11 13" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "m22 2-7 20-4-9-9-4 20-7Z" }),
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M22 2 11 13" })
               ] })
             }
           )
         ] })
-      ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ToolsMenuModal,
+        {
+          isOpen: showToolsMenu,
+          onClose: () => setShowToolsMenu(false),
+          tools: AVAILABLE_TOOLS,
+          onSelectTool: handleSelectTool
+        }
+      )
+    ] });
+  }
+
+  // src/components/ToolView.tsx
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  function ToolView({ onBack, toolId }) {
+    const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
+    if (!tool) {
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              onClick: onBack,
+              className: "w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-600 transition-all hover:bg-red-100 hover:border-red-300",
+              title: "Back to Chat",
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: "Tool Not Found" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm text-gray-600", children: "This tool is not available" }) })
+      ] });
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          "button",
+          {
+            onClick: onBack,
+            className: "w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-600 transition-all hover:bg-red-100 hover:border-red-300",
+            title: "Back to Chat",
+            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "text-lg", children: tool.icon }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: tool.name })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "mb-3 text-4xl", children: tool.icon }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm font-semibold text-gray-900 mb-1", children: tool.name }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs text-gray-600", children: tool.description }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs text-gray-500 mt-3", children: "Component coming in v1.2.3" }),
+        tool.hasChatbar && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "inline-flex items-center gap-1 mt-3 px-2 py-1 bg-red-100 border border-red-200 rounded-full text-[10px] text-red-700 font-medium", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("path", { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }) }),
+          "AI Assisted"
+        ] })
+      ] }) })
     ] });
   }
 
   // src/components/ExtensionLayout.tsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   function ExtensionLayout() {
     const [currentView, setCurrentView] = (0, import_react6.useState)("form");
+    const [activeTool, setActiveTool] = (0, import_react6.useState)(null);
     const [showResetModal, setShowResetModal] = (0, import_react6.useState)(false);
     const [showSettingsModal, setShowSettingsModal] = (0, import_react6.useState)(false);
     const [isInitialized, setIsInitialized] = (0, import_react6.useState)(false);
     const { context, resetContext } = useBookingContext();
-    const { addMessage, clearMessages, hydrateFromStorage, isHydrated } = useChatMessages();
+    const { addMessage, clearMessages, hydrateFromStorage } = useChatMessages();
     (0, import_react6.useEffect)(() => {
       const initializeApp = async () => {
         await hydrateFromStorage();
-        const wasChatViewActive = await loadChatViewActive();
-        if (wasChatViewActive) {
-          setCurrentView("chat");
-        }
+        const savedView = await loadCurrentView();
+        setCurrentView(savedView);
         setIsInitialized(true);
       };
       initializeApp();
@@ -17201,19 +17339,29 @@ What would you like help with? I can guide you through:
     };
     const handleFormSubmit = (formData) => {
       setCurrentView("chat");
-      saveChatViewActive(true);
+      saveCurrentView("chat");
       const welcomeMsg = generateWelcomeMessage(false);
       addMessage("assistant", welcomeMsg, formData);
     };
     const handleSkipForm = (formData) => {
       setCurrentView("chat");
-      saveChatViewActive(true);
+      saveCurrentView("chat");
       const welcomeMsg = generateWelcomeMessage(true);
       addMessage("assistant", welcomeMsg, formData);
     };
     const handleEditContext = () => {
       setCurrentView("form");
-      saveChatViewActive(false);
+      saveCurrentView("form");
+    };
+    const handleOpenTool = (toolId) => {
+      setActiveTool(toolId);
+      setCurrentView("tools");
+      saveCurrentView("tools");
+    };
+    const handleBackFromTool = () => {
+      setActiveTool(null);
+      setCurrentView("chat");
+      saveCurrentView("chat");
     };
     const handleReset = () => {
       setShowResetModal(true);
@@ -17223,17 +17371,18 @@ What would you like help with? I can guide you through:
       clearMessages();
       clearAllStorage();
       setCurrentView("form");
+      setActiveTool(null);
       setShowResetModal(false);
     };
     if (!isInitialized) {
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex h-full items-center justify-center bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500" }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm text-gray-600", children: "Loading..." })
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex h-full items-center justify-center bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500" }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm text-gray-600", children: "Loading..." })
       ] }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           Image,
           {
             className: "w-7 h-7 block object-contain",
@@ -17243,49 +17392,62 @@ What would you like help with? I can guide you through:
             height: 28
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
           "v",
           APP_VERSION
         ] }),
-        currentView === "form" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        currentView === "form" ? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "button",
           {
             className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
             onClick: () => setShowSettingsModal(true),
             title: "Settings",
-            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("circle", { cx: "12", cy: "12", r: "3" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("circle", { cx: "12", cy: "12", r: "3" })
             ] })
           }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ) : /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "button",
           {
             className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
             onClick: handleReset,
             title: "New Booking",
-            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
             ] })
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
-        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
+        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           FormView,
           {
             onSubmit: handleFormSubmit,
             onSkip: handleSkipForm
           }
         ),
-        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(ChatView, { onEditContext: handleEditContext })
+        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          ChatView,
+          {
+            onEditContext: handleEditContext,
+            onOpenTool: handleOpenTool
+          }
+        ),
+        currentView === "tools" && activeTool && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          ToolView,
+          {
+            onBack: handleBackFromTool,
+            toolId: activeTool
+          }
+        )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
         SessionModal,
         {
           isOpen: showResetModal,
@@ -17293,7 +17455,7 @@ What would you like help with? I can guide you through:
           onConfirm: confirmReset
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
         SettingsModal,
         {
           isOpen: showSettingsModal,
@@ -17304,9 +17466,9 @@ What would you like help with? I can guide you through:
   }
 
   // src/app/page.tsx
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   function Home() {
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(ExtensionLayout, {});
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(ExtensionLayout, {});
   }
 
   // src/entry.tsx
