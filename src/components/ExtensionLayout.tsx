@@ -6,33 +6,28 @@ import { SessionModal } from './modals/SessionModal';
 import { SettingsModal } from './modals/SettingsModal';
 import { FormView } from './FormView';
 import { ChatView } from './ChatView';
+import { ToolView } from './ToolView';
 import { useBookingContext } from '@/hooks/useBookingContext';
 import { useChatMessages } from '@/hooks/useChatMessages';
-import { saveChatViewActive, loadChatViewActive, clearAllStorage } from '@/lib/storage';
-import type { FormSubmission } from '@/types';
+import { saveCurrentView, loadCurrentView, clearAllStorage } from '@/lib/storage';
+import type { FormSubmission, ViewType } from '@/types';
 import { APP_VERSION } from '@/lib/config';
 
 export function ExtensionLayout() {
-  const [currentView, setCurrentView] = useState<'form' | 'chat'>('form');
+  const [currentView, setCurrentView] = useState<ViewType>('form');
+  const [activeTool, setActiveTool] = useState<string | null>(null); // NEW: Track active tool
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { context, resetContext } = useBookingContext();
-  const { addMessage, clearMessages, hydrateFromStorage, isHydrated } = useChatMessages();
+  const { addMessage, clearMessages, hydrateFromStorage } = useChatMessages();
   
-  // Hydrate state from storage on mount
   useEffect(() => {
     const initializeApp = async () => {
-      // Load chat state first
       await hydrateFromStorage();
       
-      // Restore view state
-      const wasChatViewActive = await loadChatViewActive();
-      
-      // If chat was active, restore to chat view
-      if (wasChatViewActive) {
-        setCurrentView('chat');
-      }
+      const savedView = await loadCurrentView();
+      setCurrentView(savedView);
       
       setIsInitialized(true);
     };
@@ -98,21 +93,35 @@ Just ask me anything about the booking process!`;
   
   const handleFormSubmit = (formData: FormSubmission) => {
     setCurrentView('chat');
-    saveChatViewActive(true);
+    saveCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(false);
     addMessage('assistant', welcomeMsg, formData);
   };
   
   const handleSkipForm = (formData: FormSubmission) => {
     setCurrentView('chat');
-    saveChatViewActive(true);
+    saveCurrentView('chat');
     const welcomeMsg = generateWelcomeMessage(true);
     addMessage('assistant', welcomeMsg, formData);
   };
   
   const handleEditContext = () => {
     setCurrentView('form');
-    saveChatViewActive(false);
+    saveCurrentView('form');
+  };
+
+  // NEW: Handle tool opening from ChatView
+  const handleOpenTool = (toolId: string) => {
+    setActiveTool(toolId);
+    setCurrentView('tools');
+    saveCurrentView('tools');
+  };
+
+  // NEW: Handle back from tool
+  const handleBackFromTool = () => {
+    setActiveTool(null);
+    setCurrentView('chat');
+    saveCurrentView('chat');
   };
   
   const handleReset = () => {
@@ -124,10 +133,10 @@ Just ask me anything about the booking process!`;
     clearMessages();
     clearAllStorage();
     setCurrentView('form');
+    setActiveTool(null);
     setShowResetModal(false);
   };
   
-  // Show loading state while hydrating
   if (!isInitialized) {
     return (
       <div className="flex h-full items-center justify-center bg-gray-50">
@@ -141,7 +150,6 @@ Just ask me anything about the booking process!`;
   
   return (
     <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50">
-      {/* Header */}
       <header className="relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent">
         <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden">
           <Image 
@@ -158,12 +166,10 @@ Just ask me anything about the booking process!`;
           <p className="text-[11px] text-white/80 font-medium mt-px">Amadeus Booking Assistant</p>
         </div>
 
-        {/* VERSION BADGE */}
         <div className="px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm">
           v{APP_VERSION}
         </div>
         
-        {/* Conditional Header Button */}
         {currentView === 'form' ? (
           <button 
             className="w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105" 
@@ -189,7 +195,6 @@ Just ask me anything about the booking process!`;
         )}
       </header>
       
-      {/* Views */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {currentView === 'form' && (
           <FormView 
@@ -199,11 +204,20 @@ Just ask me anything about the booking process!`;
         )}
         
         {currentView === 'chat' && (
-          <ChatView onEditContext={handleEditContext} />
+          <ChatView 
+            onEditContext={handleEditContext}
+            onOpenTool={handleOpenTool}
+          />
+        )}
+
+        {currentView === 'tools' && activeTool && (
+          <ToolView 
+            onBack={handleBackFromTool}
+            toolId={activeTool}
+          />
         )}
       </div>
       
-      {/* Modals */}
       <SessionModal 
         isOpen={showResetModal}
         onClose={() => setShowResetModal(false)}

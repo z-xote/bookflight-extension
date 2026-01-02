@@ -2,19 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Message } from './Message';
+import { ToolsMenuModal } from './modals/ToolsMenuModal';
+import { AVAILABLE_TOOLS } from '@/lib/tools';
 import { useChatMessages } from '@/hooks/useChatMessages';
-import { useBookingContext } from '@/hooks/useBookingContext'; // KEEP THIS
+import { useBookingContext } from '@/hooks/useBookingContext';
 import { QUICK_ACTIONS } from '@/lib/config';
 import { cn } from '@/lib/utils';
 
 interface ChatViewProps {
   onEditContext: () => void;
+  onOpenTool: (toolId: string) => void; // CHANGED: Pass toolId instead of just opening
 }
 
-export function ChatView({ onEditContext }: ChatViewProps) {
+export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
   const { messages, isTyping, sendMessage } = useChatMessages();
-  const { context } = useBookingContext(); // ADD THIS BACK - needed for renderContextBar
+  const { context } = useBookingContext();
   const [inputValue, setInputValue] = useState('');
+  const [showToolsMenu, setShowToolsMenu] = useState(false); // NEW: Modal state
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
@@ -31,7 +35,7 @@ export function ChatView({ onEditContext }: ChatViewProps) {
       inputRef.current.style.height = 'auto';
     }
     
-    await sendMessage(text); // context removed - now uses stored formData
+    await sendMessage(text);
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -49,7 +53,13 @@ export function ChatView({ onEditContext }: ChatViewProps) {
   };
   
   const handleQuickAction = async (action: string) => {
-    await sendMessage(action); // context removed - now uses stored formData
+    await sendMessage(action);
+  };
+
+  // NEW: Handle tool selection
+  const handleSelectTool = (toolId: string) => {
+    setShowToolsMenu(false);
+    onOpenTool(toolId);
   };
   
   const renderContextBar = () => {
@@ -167,7 +177,7 @@ export function ChatView({ onEditContext }: ChatViewProps) {
         </div>
         
         {/* Input Wrapper */}
-        <div className="flex gap-2.5 items-end">
+        <div className="flex gap-[9px] items-end">
           <textarea
             ref={inputRef}
             className="flex-1 px-3.5 py-3 border-[1.5px] border-gray-200 rounded-md text-[13px] font-sans resize-none min-h-[44px] max-h-[120px] leading-tight transition-all focus:outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100 placeholder:text-gray-400"
@@ -178,6 +188,20 @@ export function ChatView({ onEditContext }: ChatViewProps) {
             onKeyDown={handleKeyDown}
             onInput={handleInput}
           />
+
+          {/* Tools Button - CHANGED: Opens modal instead of navigating */}
+          <button
+            onClick={() => setShowToolsMenu(true)}
+            className="w-8 h-11 flex items-center justify-center rounded-md border-[1.5px] border-gray-200 bg-white text-gray-600 transition-all hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900"
+            title="Open Tools"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1"/>
+              <circle cx="12" cy="5" r="1"/>
+              <circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+
           <button
             className={cn(
               "w-11 h-11 border-none bg-gradient-primary rounded-md text-white cursor-pointer flex items-center justify-center transition-all shadow-red",
@@ -193,6 +217,14 @@ export function ChatView({ onEditContext }: ChatViewProps) {
           </button>
         </div>
       </div>
+
+      {/* NEW: Tools Menu Modal - Overlays on chat */}
+      <ToolsMenuModal
+        isOpen={showToolsMenu}
+        onClose={() => setShowToolsMenu(false)}
+        tools={AVAILABLE_TOOLS}
+        onSelectTool={handleSelectTool}
+      />
     </div>
   );
 }

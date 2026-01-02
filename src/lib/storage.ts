@@ -5,15 +5,14 @@
  * Uses chrome.storage.local for persistence between popup open/close cycles.
  */
 
-import type { Message, FormSubmission } from '@/types';
+import type { Message, FormSubmission, ViewType } from '@/types';
 
 const STORAGE_KEYS = {
   MESSAGES: 'bfg-messages',
   FORM_DATA: 'bfg-form-data',
   IS_FIRST_MESSAGE: 'bfg-is-first-message',
-  CHAT_VIEW_ACTIVE: 'bfg-chat-view-active'
+  CURRENT_VIEW: 'bfg-current-view'
 } as const;
-
 
 /**
  * Get chrome storage API safely
@@ -64,7 +63,6 @@ export async function loadMessages(): Promise<Message[]> {
       if (!stored) return [];
       
       const messages = JSON.parse(stored);
-      // ✅ FIX: Convert timestamp strings back to Date objects
       return Array.isArray(messages) 
         ? messages.map(msg => ({
             ...msg,
@@ -83,7 +81,6 @@ export async function loadMessages(): Promise<Message[]> {
     
     if (!Array.isArray(messages)) return [];
     
-    // ✅ FIX: Convert timestamp strings back to Date objects
     return messages.map(msg => ({
       ...msg,
       timestamp: new Date(msg.timestamp)
@@ -197,14 +194,14 @@ export async function loadIsFirstMessage(): Promise<boolean> {
 }
 
 /**
- * Save current view state (form or chat)
+ * Save current view state (form | chat | tools)
  */
-export async function saveChatViewActive(isActive: boolean): Promise<void> {
+export async function saveCurrentView(view: ViewType): Promise<void> {
   const chromeStorage = getChromeStorage();
   
   if (!chromeStorage) {
     try {
-      localStorage.setItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE, JSON.stringify(isActive));
+      localStorage.setItem(STORAGE_KEYS.CURRENT_VIEW, view);
     } catch (error) {
       console.error('Failed to save to localStorage:', error);
     }
@@ -213,36 +210,37 @@ export async function saveChatViewActive(isActive: boolean): Promise<void> {
   
   try {
     await chromeStorage.set({
-      [STORAGE_KEYS.CHAT_VIEW_ACTIVE]: isActive
+      [STORAGE_KEYS.CURRENT_VIEW]: view
     });
   } catch (error) {
-    console.error('Failed to save chat view state:', error);
+    console.error('Failed to save current view:', error);
   }
 }
 
 /**
  * Load current view state
  */
-export async function loadChatViewActive(): Promise<boolean> {
+export async function loadCurrentView(): Promise<ViewType> {
   const chromeStorage = getChromeStorage();
   
   if (!chromeStorage) {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
-      return stored ? JSON.parse(stored) : false;
+      const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_VIEW);
+      const view = stored as ViewType | null;
+      return (view === 'form' || view === 'chat' || view === 'tools') ? view : 'form';
     } catch (error) {
       console.error('Failed to load from localStorage:', error);
-      return false;
+      return 'form';
     }
   }
   
   try {
-    const result = await chromeStorage.get(STORAGE_KEYS.CHAT_VIEW_ACTIVE);
-    const value = result[STORAGE_KEYS.CHAT_VIEW_ACTIVE];
-    return typeof value === 'boolean' ? value : false;
+    const result = await chromeStorage.get(STORAGE_KEYS.CURRENT_VIEW);
+    const view = result[STORAGE_KEYS.CURRENT_VIEW] as ViewType | undefined;
+    return (view === 'form' || view === 'chat' || view === 'tools') ? view : 'form';
   } catch (error) {
-    console.error('Failed to load chat view state:', error);
-    return false;
+    console.error('Failed to load current view:', error);
+    return 'form';
   }
 }
 

@@ -15,8 +15,8 @@ export const N8N_CONFIG = {
 
 export const QUICK_ACTIONS = [
   { label: 'Check Availability', action: 'Check availability' },
-  { label: 'Help with Pricing', action: 'Help with pricing' },
-  { label: 'How to Sell', action: 'How do I sell a seat?' },
+  { label: 'Pricing', action: 'Help with pricing' },
+  { label: 'Sell Seats', action: 'How do I sell a seat?' },
   { label: 'PNR Checklist', action: 'PNR checklist' }
 ];
 

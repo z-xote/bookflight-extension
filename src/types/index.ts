@@ -1,3 +1,22 @@
+
+export type ViewType = 'form' | 'chat' | 'tools';
+
+
+export interface ToolConfig {
+  id: string;
+  name: string;
+  description: string;
+  icon: string; 
+  hasChatbar: boolean; 
+  component?: React.ComponentType<ToolProps>; 
+}
+
+
+export interface ToolProps {
+  onBack: () => void;
+  onSendMessage?: (message: string) => Promise<void>; 
+}
+
 export interface BookingContext {
   firstName?: string;
   lastName?: string;

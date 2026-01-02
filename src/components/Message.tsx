@@ -32,37 +32,39 @@ export function Message({ message }: MessageProps) {
     ? parseMarkdown(content) 
     : escapeHtml(content);
   
-  useEffect(() => {
-    if (role === 'assistant' && bubbleRef.current) {
-      const pres = bubbleRef.current.querySelectorAll('pre');
-      
-      pres.forEach((pre) => {
-        if (pre.querySelector('.amadeus-chip')) return;
+    useEffect(() => {
+      if (role === 'assistant' && bubbleRef.current) {
+        const pres = bubbleRef.current.querySelectorAll('pre');
         
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10';
-        
-        chip.textContent = 'Amadeus';
-        
-        chip.addEventListener('click', async () => {
-          const codeEl = pre.querySelector('code');
-          const text = (codeEl?.innerText ?? pre.innerText ?? '').trim();
+        pres.forEach((pre) => {
+          // Prevent duplicate buttons
+          if (pre.querySelector('.amadeus-chip')) return;
           
-          try {
-            await navigator.clipboard.writeText(text);
-            chip.textContent = 'Copied!';
-            setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
-          } catch (err) {
-            chip.textContent = 'Failed';
-            setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
-          }
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10';
+          
+          chip.textContent = 'Amadeus';
+          
+          chip.addEventListener('click', async () => {
+            const codeEl = pre.querySelector('code');
+            const text = (codeEl?.textContent ?? pre.textContent ?? '').trim();
+            
+            try {
+              await navigator.clipboard.writeText(text);
+              chip.textContent = 'Copied!';
+              setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
+            } catch (err) {
+              console.error('Copy failed:', err);
+              chip.textContent = 'Failed';
+              setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
+            }
+          });
+          
+          pre.appendChild(chip);
         });
-        
-        pre.appendChild(chip);
-      });
-    }
-  },);
+      }
+    }, [role, content]); 
   
   return (
     <div className="flex gap-2.5 animate-messageIn">
