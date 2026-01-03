@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { formatTime, escapeHtml } from '@/lib/utils';
 import { parseMarkdown } from '@/lib/markdown';
 import { cn } from '@/lib/utils';
@@ -10,9 +10,10 @@ interface MessageProps {
   message: MessageType;
 }
 
-export function Message({ message }: MessageProps) {
+// ✅ WRAP IN memo() with custom comparison
+export const Message = memo(function Message({ message }: MessageProps) {
   const bubbleRef = useRef<HTMLDivElement>(null);
-  const { role, content, timestamp } = message;
+  const { role, content, timestamp, id } = message;
   
   const name = role === 'assistant' ? 'Bookflight Guide' : 'You';
   const time = formatTime(timestamp);
@@ -32,39 +33,53 @@ export function Message({ message }: MessageProps) {
     ? parseMarkdown(content) 
     : escapeHtml(content);
   
-    useEffect(() => {
-      if (role === 'assistant' && bubbleRef.current) {
-        const pres = bubbleRef.current.querySelectorAll('pre');
+  useEffect(() => {
+    if (role === 'assistant' && bubbleRef.current) {
+      const pres = bubbleRef.current.querySelectorAll('pre');
+      
+      pres.forEach((pre) => {
+        // Prevent duplicate buttons
+        if (pre.querySelector('.amadeus-chip')) return;
         
-        pres.forEach((pre) => {
-          // Prevent duplicate buttons
-          if (pre.querySelector('.amadeus-chip')) return;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10';
+        
+        chip.textContent = 'Amadeus';
+        
+        chip.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           
-          const chip = document.createElement('button');
-          chip.type = 'button';
-          chip.className = 'amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10';
+          const codeEl = pre.querySelector('code');
+          const text = (codeEl?.textContent ?? pre.textContent ?? '').trim();
           
-          chip.textContent = 'Amadeus';
+          if (!text) {
+            chip.textContent = 'Empty!';
+            setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
+            return;
+          }
           
-          chip.addEventListener('click', async () => {
-            const codeEl = pre.querySelector('code');
-            const text = (codeEl?.textContent ?? pre.textContent ?? '').trim();
-            
-            try {
-              await navigator.clipboard.writeText(text);
-              chip.textContent = 'Copied!';
-              setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
-            } catch (err) {
-              console.error('Copy failed:', err);
-              chip.textContent = 'Failed';
-              setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
-            }
-          });
-          
-          pre.appendChild(chip);
+          // Try modern clipboard API first
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+              .then(() => {
+                chip.textContent = 'Copied!';
+                setTimeout(() => { chip.textContent = 'Amadeus'; }, 900);
+              })
+              .catch((err) => {
+                console.error('Clipboard API failed:', err);
+                fallbackCopy(text, chip);
+              });
+          } else {
+            fallbackCopy(text, chip);
+          }
         });
-      }
-    }, [role, content]); 
+        
+        pre.appendChild(chip);
+      });
+    }
+  }, [role, content, id]); // ✅ Added 'id' to dependencies
   
   return (
     <div className="flex gap-2.5 animate-messageIn">
@@ -84,6 +99,7 @@ export function Message({ message }: MessageProps) {
         </div>
         <div 
           ref={bubbleRef}
+          suppressHydrationWarning
           className={cn(
             "px-3.5 py-3 rounded-md text-[13px] leading-relaxed",
             role === 'assistant' 
@@ -95,4 +111,35 @@ export function Message({ message }: MessageProps) {
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // ✅ Custom comparison: only re-render if message actually changed
+  return prevProps.message.id === nextProps.message.id &&
+         prevProps.message.content === nextProps.message.content;
+});
+
+// Helper function for fallback copy
+function fallbackCopy(text: string, button: HTMLButtonElement) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  textarea.setAttribute('readonly', '');
+  
+  document.body.appendChild(textarea);
+  textarea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      button.textContent = 'Copied!';
+    } else {
+      button.textContent = 'Failed';
+    }
+  } catch (err) {
+    console.error('Fallback copy failed:', err);
+    button.textContent = 'Failed';
+  } finally {
+    document.body.removeChild(textarea);
+    setTimeout(() => { button.textContent = 'Amadeus'; }, 900);
+  }
 }
