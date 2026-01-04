@@ -96057,6 +96057,11 @@
         updatedFormData.firstName = passengers[0].firstName;
         updatedFormData.lastName = passengers[0].lastName;
       }
+      updatedFormData.passengers = passengers.map((p) => ({
+        title: p.title,
+        firstName: p.firstName,
+        lastName: p.lastName
+      }));
       setContext(updatedFormData);
       onSubmit(formSubmission);
     };
@@ -96611,7 +96616,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.2.4",
+    version: "1.3.0",
     private: true,
     scripts: {
       dev: "next dev",
@@ -97202,7 +97207,10 @@
       }
       return /* @__PURE__ */ new Date();
     });
+    const [isReturnView, setIsReturnView] = (0, import_react7.useState)(false);
     const hasFormData = Boolean(formData && Object.keys(formData).length > 0);
+    const hasDepartDate = Boolean(formData?.departDate);
+    const hasReturnDate = Boolean(formData?.returnDate);
     const today = (0, import_react7.useMemo)(() => {
       const d = /* @__PURE__ */ new Date();
       d.setHours(0, 0, 0, 0);
@@ -97228,15 +97236,29 @@
     }, [currentDate, oneYearFromNow]);
     const decrementDate = () => {
       if (!canDecrementDate) return;
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() - 1);
-      setCurrentDate(newDate);
+      setCurrentDate((prev) => {
+        const newDate = new Date(prev);
+        newDate.setDate(newDate.getDate() - 1);
+        return newDate;
+      });
     };
     const incrementDate = () => {
       if (!canIncrementDate) return;
-      const newDate = new Date(currentDate);
-      newDate.setDate(newDate.getDate() + 1);
-      setCurrentDate(newDate);
+      setCurrentDate((prev) => {
+        const newDate = new Date(prev);
+        newDate.setDate(newDate.getDate() + 1);
+        return newDate;
+      });
+    };
+    const jumpToDepart = () => {
+      if (!formData?.departDate || isReturnView === false) return;
+      setCurrentDate(new Date(formData.departDate));
+      setIsReturnView(false);
+    };
+    const jumpToReturn = () => {
+      if (!formData?.returnDate || isReturnView === true) return;
+      setCurrentDate(new Date(formData.returnDate));
+      setIsReturnView(true);
     };
     const formatDateForCommand = (date) => {
       const day = String(date.getDate()).padStart(2, "0");
@@ -97244,20 +97266,53 @@
       return `${day}${month}`;
     };
     const clientCommand = (0, import_react7.useMemo)(() => {
-      const lastName = formData?.lastName || "DOE";
-      const firstName = formData?.firstName || "JOHN";
-      const title = formData?.title || "MR";
       const phone = formData?.phone || "6799274730";
       const email = formData?.email || "JOHN@EMAIL.COM";
       const agentId = "6";
-      return `NM1${lastName.toUpperCase()}/${firstName.toUpperCase()} ${title.toUpperCase()};AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId.toUpperCase()}`;
-    }, [formData]);
+      if (!hasFormData) {
+        return `NM1DOE/JOHN MR;AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
+      }
+      const passengers = formData?.passengers && formData.passengers.length > 0 ? formData.passengers : [
+        {
+          lastName: formData?.lastName || "DOE",
+          firstName: formData?.firstName || "JOHN",
+          title: formData?.title || "MR"
+        }
+      ];
+      const grouped = passengers.reduce((acc, pax) => {
+        const surname = pax.lastName.toUpperCase();
+        if (!acc[surname]) {
+          acc[surname] = [];
+        }
+        acc[surname].push(pax);
+        return acc;
+      }, {});
+      const nmCommands = [];
+      Object.entries(grouped).forEach(([surname, paxList]) => {
+        if (paxList.length === 1) {
+          const pax = paxList[0];
+          nmCommands.push(
+            `NM1${surname}/${pax.firstName.toUpperCase()} ${pax.title.toUpperCase()}`
+          );
+        } else {
+          const nameList = paxList.map(
+            (p) => `${p.firstName.toUpperCase()} ${p.title.toUpperCase()}`
+          ).join("/");
+          nmCommands.push(`NM${paxList.length}${surname}/${nameList}`);
+        }
+      });
+      const nameSection = nmCommands.join(";");
+      return `${nameSection};AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
+    }, [formData, hasFormData]);
     const availabilityCommand = (0, import_react7.useMemo)(() => {
       const dateStr = formatDateForCommand(currentDate);
       const origin = (formData?.origin || "NAN").toUpperCase();
       const destination = (formData?.destination || "AKL").toUpperCase();
+      if (isReturnView) {
+        return `AN${dateStr}${destination}${origin}`;
+      }
       return `AN${dateStr}${origin}${destination}`;
-    }, [currentDate, formData]);
+    }, [currentDate, formData, isReturnView]);
     const clientMarkdown = (0, import_react7.useMemo)(() => {
       return `\`\`\`
 ${clientCommand}
@@ -97356,14 +97411,26 @@ ${availabilityCommand}
             children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { dangerouslySetInnerHTML: { __html: renderedAvailability } })
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "mt-3 flex items-center justify-center gap-3", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "mt-3 grid grid-cols-4 gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              onClick: jumpToDepart,
+              disabled: !hasDepartDate,
+              className: cn(
+                "px-4 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                hasDepartDate ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm" : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
+              ),
+              children: "Depart"
+            }
+          ),
           /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
             "button",
             {
               onClick: decrementDate,
               disabled: !canDecrementDate,
               className: cn(
-                "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                "px-4 py-2.5 rounded-lg text-sm font-semibold transition-all",
                 canDecrementDate ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm" : "bg-gray-200 text-gray-400 cursor-not-allowed"
               ),
               children: "\u25C0 Back"
@@ -97375,10 +97442,22 @@ ${availabilityCommand}
               onClick: incrementDate,
               disabled: !canIncrementDate,
               className: cn(
-                "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                "px-4 py-2.5 rounded-lg text-sm font-semibold transition-all",
                 canIncrementDate ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md hover:shadow-lg hover:-translate-y-px" : "bg-gray-200 text-gray-400 cursor-not-allowed"
               ),
               children: "Next \u25B6"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              onClick: jumpToReturn,
+              disabled: !hasReturnDate,
+              className: cn(
+                "px-4 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                hasReturnDate ? "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm" : "bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed"
+              ),
+              children: "Return"
             }
           )
         ] })
