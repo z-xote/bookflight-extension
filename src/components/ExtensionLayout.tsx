@@ -212,9 +212,10 @@ Just ask me anything about the booking process!`;
 
         {currentView === 'tools' && activeTool && (
           <ToolView 
-            onBack={handleBackFromTool}
-            toolId={activeTool}
-          />
+          onBack={handleBackFromTool}
+          toolId={activeTool}
+          formData={context}  // ← ADD THIS
+        />
         )}
       </div>
       

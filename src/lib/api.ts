@@ -1,5 +1,5 @@
 import { N8N_CONFIG } from './config';
-import { getChatId } from './utils';
+import { getChatId } from './chatId';
 import type { FormSubmission } from '@/types';
 
 /**

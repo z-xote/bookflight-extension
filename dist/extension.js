@@ -92369,11 +92369,11 @@
   });
 
   // src/entry.tsx
-  var import_react8 = __toESM(require_react());
+  var import_react9 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // src/components/ExtensionLayout.tsx
-  var import_react7 = __toESM(require_react());
+  var import_react8 = __toESM(require_react());
 
   // src/lib/image-shim.js
   var import_react = __toESM(require_react());
@@ -95424,18 +95424,6 @@
       minute: "2-digit"
     });
   }
-  function generateChatId() {
-    return "chat-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
-  }
-  function getChatId() {
-    if (typeof window === "undefined") return "";
-    let chatId = sessionStorage.getItem("chatId");
-    if (!chatId) {
-      chatId = generateChatId();
-      sessionStorage.setItem("chatId", chatId);
-    }
-    return chatId;
-  }
   function cn(...inputs) {
     return twMerge(clsx(inputs));
   }
@@ -96439,7 +96427,7 @@
     return result.join("\n");
   }
   function parseMarkdown(markdown) {
-    let html = markdown;
+    let html = escapeHtml(markdown);
     html = parseCodeBlocks(html);
     html = parseTables(html);
     html = parseBlockquotes(html);
@@ -96688,6 +96676,17 @@
     { label: "PNR Checklist", action: "PNR checklist" }
   ];
   var APP_VERSION = package_default.version;
+
+  // src/lib/chatId.ts
+  var STORAGE_KEY = "bfg-chat-id";
+  function getChatId() {
+    let chatId = sessionStorage.getItem(STORAGE_KEY);
+    if (!chatId) {
+      chatId = crypto.randomUUID?.() || `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem(STORAGE_KEY, chatId);
+    }
+    return chatId;
+  }
 
   // src/lib/api.ts
   async function sendToN8N(userMessage, formData) {
@@ -97193,65 +97192,293 @@
     ] });
   }
 
-  // src/components/ToolView.tsx
+  // src/components/tools/PnrBuilder.tsx
+  var import_react7 = __toESM(require_react());
   var import_jsx_runtime11 = __toESM(require_jsx_runtime());
-  function ToolView({ onBack, toolId }) {
+  function PnrBuilder({ formData } = {}) {
+    const [currentDate, setCurrentDate] = (0, import_react7.useState)(() => {
+      if (formData?.departDate) {
+        return new Date(formData.departDate);
+      }
+      return /* @__PURE__ */ new Date();
+    });
+    const hasFormData = Boolean(formData && Object.keys(formData).length > 0);
+    const today = (0, import_react7.useMemo)(() => {
+      const d = /* @__PURE__ */ new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }, []);
+    const oneYearFromNow = (0, import_react7.useMemo)(() => {
+      const d = /* @__PURE__ */ new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }, []);
+    const canDecrementDate = (0, import_react7.useMemo)(() => {
+      const prevDate = new Date(currentDate);
+      prevDate.setDate(prevDate.getDate() - 1);
+      prevDate.setHours(0, 0, 0, 0);
+      return prevDate >= today;
+    }, [currentDate, today]);
+    const canIncrementDate = (0, import_react7.useMemo)(() => {
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      nextDate.setHours(0, 0, 0, 0);
+      return nextDate <= oneYearFromNow;
+    }, [currentDate, oneYearFromNow]);
+    const decrementDate = () => {
+      if (!canDecrementDate) return;
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() - 1);
+      setCurrentDate(newDate);
+    };
+    const incrementDate = () => {
+      if (!canIncrementDate) return;
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() + 1);
+      setCurrentDate(newDate);
+    };
+    const formatDateForCommand = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = date.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+      return `${day}${month}`;
+    };
+    const clientCommand = (0, import_react7.useMemo)(() => {
+      const lastName = formData?.lastName || "DOE";
+      const firstName = formData?.firstName || "JOHN";
+      const title = formData?.title || "MR";
+      const phone = formData?.phone || "6799274730";
+      const email = formData?.email || "JOHN@EMAIL.COM";
+      const agentId = "6";
+      return `NM1${lastName.toUpperCase()}/${firstName.toUpperCase()} ${title.toUpperCase()};AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId.toUpperCase()}`;
+    }, [formData]);
+    const availabilityCommand = (0, import_react7.useMemo)(() => {
+      const dateStr = formatDateForCommand(currentDate);
+      const origin = (formData?.origin || "NAN").toUpperCase();
+      const destination = (formData?.destination || "AKL").toUpperCase();
+      return `AN${dateStr}${origin}${destination}`;
+    }, [currentDate, formData]);
+    const clientMarkdown = (0, import_react7.useMemo)(() => {
+      return `\`\`\`
+${clientCommand}
+\`\`\``;
+    }, [clientCommand]);
+    const availabilityMarkdown = (0, import_react7.useMemo)(() => {
+      return `\`\`\`
+${availabilityCommand}
+\`\`\``;
+    }, [availabilityCommand]);
+    const renderedClient = (0, import_react7.useMemo)(() => parseMarkdown(clientMarkdown), [clientMarkdown]);
+    const renderedAvailability = (0, import_react7.useMemo)(() => parseMarkdown(availabilityMarkdown), [availabilityMarkdown]);
+    const clientBlockRef = (0, import_react7.useRef)(null);
+    const availabilityBlockRef = (0, import_react7.useRef)(null);
+    (0, import_react7.useEffect)(() => {
+      [clientBlockRef, availabilityBlockRef].forEach((ref) => {
+        if (!ref.current) return;
+        const pres = ref.current.querySelectorAll("pre");
+        pres.forEach((pre) => {
+          if (pre.querySelector(".amadeus-chip")) return;
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "amadeus-chip absolute top-0 right-0 h-5 min-w-[74px] px-2.5 inline-flex items-center justify-center text-center bg-red-600 text-white text-[9px] font-bold tracking-wide uppercase border-none rounded-tl-none rounded-tr-md rounded-br-none rounded-bl-md cursor-pointer select-none transition-all duration-[120ms] ease-in-out hover:bg-red-700 hover:brightness-110 active:bg-red-800 active:brightness-95 z-10";
+          chip.textContent = "Amadeus";
+          chip.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const codeEl = pre.querySelector("code");
+            const text = (codeEl?.textContent ?? pre.textContent ?? "").trim();
+            if (!text) {
+              chip.textContent = "Empty!";
+              setTimeout(() => {
+                chip.textContent = "Amadeus";
+              }, 900);
+              return;
+            }
+            if (navigator.clipboard && window.isSecureContext) {
+              navigator.clipboard.writeText(text).then(() => {
+                chip.textContent = "Copied!";
+                setTimeout(() => {
+                  chip.textContent = "Amadeus";
+                }, 900);
+              }).catch(() => fallbackCopy2(text, chip));
+            } else {
+              fallbackCopy2(text, chip);
+            }
+          });
+          pre.appendChild(chip);
+        });
+      });
+    }, [renderedClient, renderedAvailability]);
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex flex-col h-full bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex-1 overflow-y-auto p-4", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "max-w-3xl mx-auto space-y-3", children: [
+      !hasFormData && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 flex items-start gap-2.5", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("svg", { className: "w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "12", y1: "9", x2: "12", y2: "13" }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("line", { x1: "12", y1: "17", x2: "12.01", y2: "17" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-xs font-semibold text-amber-900", children: "No form data provided" }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-[11px] text-amber-700 mt-0.5", children: "Using default values for demonstration" })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("label", { className: "text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2 block px-1", children: "Client Details" }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          "div",
+          {
+            ref: clientBlockRef,
+            className: cn(
+              "prose prose-sm max-w-none",
+              "prose-pre:my-0 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-0 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-visible prose-pre:relative",
+              "[&_pre_.code-scroll]:overflow-x-auto [&_pre_.code-scroll]:pl-3.5 [&_pre_.code-scroll]:pr-3",
+              "[&_pre_.code-scroll]:scrollbar-thin [&_pre_.code-scroll::-webkit-scrollbar]:h-0",
+              "[&_pre_.code-scroll::-webkit-scrollbar-track]:bg-transparent [&_pre_.code-scroll::-webkit-scrollbar-thumb]:bg-transparent",
+              "[&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed [&_pre_code]:!bg-transparent [&_pre_code]:!text-gray-200 [&_pre_code]:!p-0 [&_pre_code]:!border-none [&_pre_code]:block [&_pre_code]:whitespace-pre [&_pre_code]:w-max"
+            ),
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { dangerouslySetInnerHTML: { __html: renderedClient } })
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("label", { className: "text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2 block px-1", children: "Availability Command" }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+          "div",
+          {
+            ref: availabilityBlockRef,
+            className: cn(
+              "prose prose-sm max-w-none",
+              "prose-pre:my-0 prose-pre:pt-[34px] prose-pre:pb-3.5 prose-pre:px-0 prose-pre:bg-gray-900 prose-pre:rounded-md prose-pre:overflow-visible prose-pre:relative",
+              "[&_pre_.code-scroll]:overflow-x-auto [&_pre_.code-scroll]:pl-3.5 [&_pre_.code-scroll]:pr-3",
+              "[&_pre_.code-scroll]:scrollbar-thin [&_pre_.code-scroll::-webkit-scrollbar]:h-0",
+              "[&_pre_.code-scroll::-webkit-scrollbar-track]:bg-transparent [&_pre_.code-scroll::-webkit-scrollbar-thumb]:bg-transparent",
+              "[&_pre_code]:!text-[12px] [&_pre_code]:!leading-relaxed [&_pre_code]:!bg-transparent [&_pre_code]:!text-gray-200 [&_pre_code]:!p-0 [&_pre_code]:!border-none [&_pre_code]:block [&_pre_code]:whitespace-pre [&_pre_code]:w-max"
+            ),
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { dangerouslySetInnerHTML: { __html: renderedAvailability } })
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "mt-3 flex items-center justify-center gap-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              onClick: decrementDate,
+              disabled: !canDecrementDate,
+              className: cn(
+                "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                canDecrementDate ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ),
+              children: "\u25C0 Back"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+            "button",
+            {
+              onClick: incrementDate,
+              disabled: !canIncrementDate,
+              className: cn(
+                "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all",
+                canIncrementDate ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md hover:shadow-lg hover:-translate-y-px" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ),
+              children: "Next \u25B6"
+            }
+          )
+        ] })
+      ] })
+    ] }) }) });
+  }
+  function fallbackCopy2(text, button) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.setAttribute("readonly", "");
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      const successful = document.execCommand("copy");
+      button.textContent = successful ? "Copied!" : "Failed";
+    } catch {
+      button.textContent = "Failed";
+    } finally {
+      document.body.removeChild(textarea);
+      setTimeout(() => {
+        button.textContent = "Amadeus";
+      }, 900);
+    }
+  }
+
+  // src/components/ToolView.tsx
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  function ToolView({ onBack, toolId, formData }) {
     const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
     if (!tool) {
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "button",
             {
               onClick: onBack,
               className: "w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-600 transition-all hover:bg-red-100 hover:border-red-300",
               title: "Back to Chat",
-              children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: "Tool Not Found" })
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: "Tool Not Found" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm text-gray-600", children: "This tool is not available" }) })
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm text-gray-600", children: "This tool is not available" }) })
       ] });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    const renderTool = () => {
+      switch (toolId) {
+        case "pnr-builder":
+          return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(PnrBuilder, { formData });
+        // case 'availability':
+        //   return <AvailabilitySearch />;
+        // case 'pricing':
+        //   return <PricingCalculator />;
+        // case 'seat-map':
+        //   return <SeatMapViewer />;
+        default:
+          return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mb-3 text-4xl", children: tool.icon }),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm font-semibold text-gray-900 mb-1", children: tool.name }),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-600", children: tool.description }),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500 mt-3", children: "Component coming soon" }),
+            tool.hasChatbar && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("span", { className: "inline-flex items-center gap-1 mt-3 px-2 py-1 bg-red-100 border border-red-200 rounded-full text-[10px] text-red-700 font-medium", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }) }),
+              "AI Assisted"
+            ] })
+          ] }) });
+      }
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "bg-gray-50 flex-1 flex flex-col overflow-hidden", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2.5", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
           "button",
           {
             onClick: onBack,
             className: "w-7 h-7 flex items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-600 transition-all hover:bg-red-100 hover:border-red-300",
             title: "Back to Chat",
-            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
+            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M19 12H5M12 19l-7-7 7-7" }) })
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "text-lg", children: tool.icon }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: tool.name })
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "text-lg", children: tool.icon }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-sm font-semibold text-gray-900", children: tool.name })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex-1 flex items-center justify-center px-6", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mb-3 text-4xl", children: tool.icon }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm font-semibold text-gray-900 mb-1", children: tool.name }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-xs text-gray-600", children: tool.description }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-xs text-gray-500 mt-3", children: "Component coming in v1.2.3" }),
-        tool.hasChatbar && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("span", { className: "inline-flex items-center gap-1 mt-3 px-2 py-1 bg-red-100 border border-red-200 rounded-full text-[10px] text-red-700 font-medium", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("svg", { width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }) }),
-          "AI Assisted"
-        ] })
-      ] }) })
+      renderTool()
     ] });
   }
 
   // src/components/ExtensionLayout.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   function ExtensionLayout() {
-    const [currentView, setCurrentView] = (0, import_react7.useState)("form");
-    const [activeTool, setActiveTool] = (0, import_react7.useState)(null);
-    const [showResetModal, setShowResetModal] = (0, import_react7.useState)(false);
-    const [showSettingsModal, setShowSettingsModal] = (0, import_react7.useState)(false);
-    const [isInitialized, setIsInitialized] = (0, import_react7.useState)(false);
+    const [currentView, setCurrentView] = (0, import_react8.useState)("form");
+    const [activeTool, setActiveTool] = (0, import_react8.useState)(null);
+    const [showResetModal, setShowResetModal] = (0, import_react8.useState)(false);
+    const [showSettingsModal, setShowSettingsModal] = (0, import_react8.useState)(false);
+    const [isInitialized, setIsInitialized] = (0, import_react8.useState)(false);
     const { context, resetContext } = useBookingContext();
     const { addMessage, clearMessages, hydrateFromStorage } = useChatMessages();
-    (0, import_react7.useEffect)(() => {
+    (0, import_react8.useEffect)(() => {
       const initializeApp = async () => {
         await hydrateFromStorage();
         const savedView = await loadCurrentView();
@@ -97367,14 +97594,14 @@ What would you like help with? I can guide you through:
       setShowResetModal(false);
     };
     if (!isInitialized) {
-      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex h-full items-center justify-center bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500" }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm text-gray-600", children: "Loading..." })
+      return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex h-full items-center justify-center bg-gray-50", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-red-500" }),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm text-gray-600", children: "Loading..." })
       ] }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex flex-col h-full overflow-hidden bg-gradient-to-b from-white to-gray-50", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("header", { className: "relative z-10 bg-gradient-header px-5 py-4 flex items-center gap-3 shadow-md after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-md overflow-hidden", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           Image,
           {
             className: "w-7 h-7 block object-contain",
@@ -97384,62 +97611,63 @@ What would you like help with? I can guide you through:
             height: 28
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("h1", { className: "text-base font-bold text-white tracking-tight", children: "Bookflight Guide" }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-[11px] text-white/80 font-medium mt-px", children: "Amadeus Booking Assistant" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "px-2.5 py-0.5 bg-black/15 rounded-full text-[9px] font-semibold text-white/85 tracking-wide whitespace-nowrap backdrop-blur-sm", children: [
           "v",
           APP_VERSION
         ] }),
-        currentView === "form" ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+        currentView === "form" ? /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           "button",
           {
             className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
             onClick: () => setShowSettingsModal(true),
             title: "Settings",
-            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("circle", { cx: "12", cy: "12", r: "3" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("circle", { cx: "12", cy: "12", r: "3" })
             ] })
           }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+        ) : /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           "button",
           {
             className: "w-8 h-8 border-none bg-white/15 rounded-md text-white cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-white/25 hover:scale-105",
             onClick: handleReset,
             title: "New Booking",
-            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
             ] })
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
-        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex-1 flex flex-col overflow-hidden", children: [
+        currentView === "form" && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           FormView,
           {
             onSubmit: handleFormSubmit,
             onSkip: handleSkipForm
           }
         ),
-        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+        currentView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           ChatView,
           {
             onEditContext: handleEditContext,
             onOpenTool: handleOpenTool
           }
         ),
-        currentView === "tools" && activeTool && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+        currentView === "tools" && activeTool && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
           ToolView,
           {
             onBack: handleBackFromTool,
-            toolId: activeTool
+            toolId: activeTool,
+            formData: context
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
         SessionModal,
         {
           isOpen: showResetModal,
@@ -97447,7 +97675,7 @@ What would you like help with? I can guide you through:
           onConfirm: confirmReset
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
         SettingsModal,
         {
           isOpen: showSettingsModal,
@@ -97458,19 +97686,19 @@ What would you like help with? I can guide you through:
   }
 
   // src/app/page.tsx
-  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   function Home() {
-    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(ExtensionLayout, {});
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ExtensionLayout, {});
   }
 
   // src/entry.tsx
   var root = document.getElementById("root");
   if (root) {
     (0, import_client.createRoot)(root).render(
-      import_react8.default.createElement(
-        import_react8.default.StrictMode,
+      import_react9.default.createElement(
+        import_react9.default.StrictMode,
         null,
-        import_react8.default.createElement(Home)
+        import_react9.default.createElement(Home)
       )
     );
   } else {

@@ -195,7 +195,9 @@ function parseParagraphs(text: string): string {
 }
 
 export function parseMarkdown(markdown: string): string {
-  let html = markdown;
+
+  // ✅ Escape ALL raw HTML first
+  let html = escapeHtml(markdown);
   
   html = parseCodeBlocks(html);
   html = parseTables(html);

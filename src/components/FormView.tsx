@@ -130,19 +130,26 @@ setPassengers(prev => prev.filter(p => p.id !== passengerId));
 };
 
 const handleSubmit = (e: React.FormEvent) => {
-e.preventDefault();
+  e.preventDefault();
 
-const formSubmission = buildFormSubmission(passengers, formData, 'filled_form');
+  const formSubmission = buildFormSubmission(passengers, formData, 'filled_form');
 
-const updatedFormData = { ...formData };
-if (passengers[0]) {
-updatedFormData.title = passengers[0].title;
-updatedFormData.firstName = passengers[0].firstName;
-updatedFormData.lastName = passengers[0].lastName;
-}
+  const updatedFormData = { ...formData };
+  if (passengers[0]) {
+    updatedFormData.title = passengers[0].title;
+    updatedFormData.firstName = passengers[0].firstName;
+    updatedFormData.lastName = passengers[0].lastName;
+  }
+  
+  // ← ADD THIS LINE
+  updatedFormData.passengers = passengers.map(p => ({
+    title: p.title,
+    firstName: p.firstName,
+    lastName: p.lastName
+  }));
 
-setContext(updatedFormData);
-onSubmit(formSubmission);
+  setContext(updatedFormData);
+  onSubmit(formSubmission);
 };
 
 const handleSkipToChat = () => {
