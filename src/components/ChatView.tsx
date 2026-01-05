@@ -11,14 +11,20 @@ import { cn } from '@/lib/utils';
 
 interface ChatViewProps {
   onEditContext: () => void;
-  onOpenTool: (toolId: string) => void; // CHANGED: Pass toolId instead of just opening
+  onOpenTool: (toolId: string) => void;
 }
+
+// Helper function to truncate name with ellipsis
+const truncateName = (name: string, maxLength: number = 12): string => {
+  if (name.length <= maxLength) return name;
+  return name.substring(0, maxLength) + '...';
+};
 
 export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
   const { messages, isTyping, sendMessage } = useChatMessages();
   const { context } = useBookingContext();
   const [inputValue, setInputValue] = useState('');
-  const [showToolsMenu, setShowToolsMenu] = useState(false); // NEW: Modal state
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   
@@ -56,7 +62,6 @@ export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
     await sendMessage(action);
   };
 
-  // NEW: Handle tool selection
   const handleSelectTool = (toolId: string) => {
     setShowToolsMenu(false);
     onOpenTool(toolId);
@@ -65,15 +70,19 @@ export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
   const renderContextBar = () => {
     const tags: React.ReactElement[] = [];
     
-    if (context.firstName || context.lastName) {
-      const name = [context.firstName, context.lastName].filter(Boolean).join(' ');
+    // Use first passenger from passengers array
+    if (context.passengers && context.passengers.length > 0) {
+      const firstPassenger = context.passengers[0];
+      const fullName = [firstPassenger.firstName, firstPassenger.lastName].filter(Boolean).join(' ');
+      const displayName = truncateName(fullName, 12);
+      
       tags.push(
         <span key="name" className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium">
           <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="8" r="4"/>
             <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
           </svg>
-          {name}
+          {displayName}
         </span>
       );
     }
@@ -189,7 +198,7 @@ export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
             onInput={handleInput}
           />
 
-          {/* Tools Button - CHANGED: Opens modal instead of navigating */}
+          {/* Tools Button */}
           <button
             onClick={() => setShowToolsMenu(true)}
             className="w-8 h-11 flex items-center justify-center rounded-md border-[1.5px] border-gray-200 bg-white text-gray-600 transition-all hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900"
@@ -218,7 +227,7 @@ export function ChatView({ onEditContext, onOpenTool }: ChatViewProps) {
         </div>
       </div>
 
-      {/* NEW: Tools Menu Modal - Overlays on chat */}
+      {/* Tools Menu Modal */}
       <ToolsMenuModal
         isOpen={showToolsMenu}
         onClose={() => setShowToolsMenu(false)}

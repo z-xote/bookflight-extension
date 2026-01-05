@@ -1,6 +1,4 @@
-
 export type ViewType = 'form' | 'chat' | 'tools';
-
 
 export interface ToolConfig {
   id: string;
@@ -11,16 +9,12 @@ export interface ToolConfig {
   component?: React.ComponentType<ToolProps>; 
 }
 
-
 export interface ToolProps {
   onBack: () => void;
   onSendMessage?: (message: string) => Promise<void>; 
 }
 
 export interface BookingContext {
-  firstName?: string;
-  lastName?: string;
-  title?: string;
   paxCount?: string;
   email?: string;
   phone?: string;
@@ -29,6 +23,11 @@ export interface BookingContext {
   departDate?: string;
   returnDate?: string;
   tripType?: string;
+  passengers?: Array<{
+    title: string;
+    firstName: string;
+    lastName: string;
+  }>;
 }
 
 export interface Message {
@@ -68,8 +67,6 @@ export interface N8NResponse {
   response?: string;
   message?: string;
 }
-
-
 
 export type SubmissionType = 'filled_form' | 'skipped_form';
 

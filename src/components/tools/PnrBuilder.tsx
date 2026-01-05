@@ -56,7 +56,6 @@ export function PnrBuilder({ formData }: PnrBuilderProps = {}) {
     return nextDate <= oneYearFromNow;
   }, [currentDate, oneYearFromNow]);
 
-  // FIXED: Use functional updates to ensure state doesn't reset
   const decrementDate = () => {
     if (!canDecrementDate) return;
     setCurrentDate(prev => {
@@ -102,19 +101,16 @@ export function PnrBuilder({ formData }: PnrBuilderProps = {}) {
     const email = formData?.email || 'JOHN@EMAIL.COM';
     const agentId = '6';
 
-    if (!hasFormData) {
-      return `NM1DOE/JOHN MR;AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
-    }
-
+    // Use passengers array if available, otherwise use default
     const passengers = formData?.passengers && formData.passengers.length > 0
-    ? formData.passengers
-    : [
-        {
-          lastName: formData?.lastName || 'DOE',
-          firstName: formData?.firstName || 'JOHN',
-          title: formData?.title || 'MR',
-        }
-      ];
+      ? formData.passengers
+      : [
+          {
+            lastName: 'DOE',
+            firstName: 'JOHN',
+            title: 'MR',
+          }
+        ];
 
     const grouped = passengers.reduce((acc, pax) => {
       const surname = pax.lastName.toUpperCase();
@@ -143,7 +139,7 @@ export function PnrBuilder({ formData }: PnrBuilderProps = {}) {
 
     const nameSection = nmCommands.join(';');
     return `${nameSection};AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
-  }, [formData, hasFormData]);
+  }, [formData]);
 
   // Generate availability command
   const availabilityCommand = useMemo(() => {
