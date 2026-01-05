@@ -95966,7 +95966,8 @@
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var isBookingGuideReady = (passengers, formData) => {
     const hasValidPassenger = passengers.some(
-      (p) => p.firstName.trim() && p.lastName.trim()
+      (p) => p.title.trim() && p.firstName.trim() && p.lastName.trim()
+      // ← ADD title.trim() check
     );
     const hasPhone = !!formData.phone?.trim();
     const hasTravelDetails = !!(formData.origin?.trim() && formData.destination?.trim() && formData.departDate);
@@ -95996,9 +95997,17 @@
   function FormView({ onSubmit, onSkip }) {
     const { context, setContext } = useBookingContext();
     const [formData, setFormData] = (0, import_react4.useState)(context);
-    const [passengers, setPassengers] = (0, import_react4.useState)([
-      { id: 1, title: "", firstName: "", lastName: "" }
-    ]);
+    const [passengers, setPassengers] = (0, import_react4.useState)(() => {
+      if (context.passengers && context.passengers.length > 0) {
+        return context.passengers.map((p, index) => ({
+          id: index + 1,
+          title: p.title,
+          firstName: p.firstName,
+          lastName: p.lastName
+        }));
+      }
+      return [{ id: 1, title: "", firstName: "", lastName: "" }];
+    });
     const [isNearBottom, setIsNearBottom] = (0, import_react4.useState)(false);
     const formViewRef = (0, import_react4.useRef)(null);
     const scrollTimeout = (0, import_react4.useRef)(void 0);
@@ -96051,17 +96060,14 @@
     const handleSubmit = (e) => {
       e.preventDefault();
       const formSubmission = buildFormSubmission(passengers, formData, "filled_form");
-      const updatedFormData = { ...formData };
-      if (passengers[0]) {
-        updatedFormData.title = passengers[0].title;
-        updatedFormData.firstName = passengers[0].firstName;
-        updatedFormData.lastName = passengers[0].lastName;
-      }
-      updatedFormData.passengers = passengers.map((p) => ({
-        title: p.title,
-        firstName: p.firstName,
-        lastName: p.lastName
-      }));
+      const updatedFormData = {
+        ...formData,
+        passengers: passengers.map((p) => ({
+          title: p.title,
+          firstName: p.firstName,
+          lastName: p.lastName
+        }))
+      };
       setContext(updatedFormData);
       onSubmit(formSubmission);
     };
@@ -96616,7 +96622,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.3.0",
+    version: "1.3.3",
     private: true,
     scripts: {
       dev: "next dev",
@@ -97017,6 +97023,10 @@
 
   // src/components/ChatView.tsx
   var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var truncateName = (name, maxLength = 12) => {
+    if (name.length <= maxLength) return name;
+    return name.substring(0, maxLength) + "...";
+  };
   function ChatView({ onEditContext, onOpenTool }) {
     const { messages, isTyping, sendMessage } = useChatMessages();
     const { context } = useBookingContext();
@@ -97057,15 +97067,17 @@
     };
     const renderContextBar = () => {
       const tags = [];
-      if (context.firstName || context.lastName) {
-        const name = [context.firstName, context.lastName].filter(Boolean).join(" ");
+      if (context.passengers && context.passengers.length > 0) {
+        const firstPassenger = context.passengers[0];
+        const fullName = [firstPassenger.firstName, firstPassenger.lastName].filter(Boolean).join(" ");
+        const displayName = truncateName(fullName, 12);
         tags.push(
           /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 border border-red-200 rounded-full text-[11px] text-red-700 font-medium", children: [
             /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("svg", { className: "w-3 h-3", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
               /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("circle", { cx: "12", cy: "8", r: "4" }),
               /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("path", { d: "M4 20c0-4 4-6 8-6s8 2 8 6" })
             ] }),
-            name
+            displayName
           ] }, "name")
         );
       }
@@ -97269,14 +97281,11 @@
       const phone = formData?.phone || "6799274730";
       const email = formData?.email || "JOHN@EMAIL.COM";
       const agentId = "6";
-      if (!hasFormData) {
-        return `NM1DOE/JOHN MR;AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
-      }
       const passengers = formData?.passengers && formData.passengers.length > 0 ? formData.passengers : [
         {
-          lastName: formData?.lastName || "DOE",
-          firstName: formData?.firstName || "JOHN",
-          title: formData?.title || "MR"
+          lastName: "DOE",
+          firstName: "JOHN",
+          title: "MR"
         }
       ];
       const grouped = passengers.reduce((acc, pax) => {
@@ -97303,7 +97312,7 @@
       });
       const nameSection = nmCommands.join(";");
       return `${nameSection};AP ${phone};APE-${email.toUpperCase()};TKOK;RF${agentId}`;
-    }, [formData, hasFormData]);
+    }, [formData]);
     const availabilityCommand = (0, import_react7.useMemo)(() => {
       const dateStr = formatDateForCommand(currentDate);
       const origin = (formData?.origin || "NAN").toUpperCase();
@@ -97582,12 +97591,13 @@ Just ask me anything about the booking process!`;
       }
       const hasRoute = context.origin && context.destination;
       const hasDate = context.departDate;
-      const hasPax = context.firstName;
+      const hasPax = context.passengers && context.passengers.length > 0 && context.passengers[0].firstName;
       let message = `## Booking Context Loaded \u2713
 
 `;
-      if (hasPax) {
-        message += `**Passenger:** ${context.title || ""} ${context.firstName} ${context.lastName}
+      if (hasPax && context.passengers) {
+        const firstPax = context.passengers[0];
+        message += `**Passenger:** ${firstPax.title || ""} ${firstPax.firstName} ${firstPax.lastName}
 `;
       }
       if (hasRoute) {
