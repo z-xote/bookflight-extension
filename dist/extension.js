@@ -95966,7 +95966,8 @@
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var isBookingGuideReady = (passengers, formData) => {
     const hasValidPassenger = passengers.some(
-      (p) => p.firstName.trim() && p.lastName.trim()
+      (p) => p.title.trim() && p.firstName.trim() && p.lastName.trim()
+      // ← ADD title.trim() check
     );
     const hasPhone = !!formData.phone?.trim();
     const hasTravelDetails = !!(formData.origin?.trim() && formData.destination?.trim() && formData.departDate);
@@ -96621,7 +96622,7 @@
   // package.json
   var package_default = {
     name: "bfg",
-    version: "1.3.2",
+    version: "1.3.3",
     private: true,
     scripts: {
       dev: "next dev",

@@ -26,7 +26,7 @@ const isBookingGuideReady = (
   formData: BookingContext
 ): boolean => {
   const hasValidPassenger = passengers.some(
-    p => p.firstName.trim() && p.lastName.trim()
+    p => p.title.trim() && p.firstName.trim() && p.lastName.trim()  // ← ADD title.trim() check
   );
   const hasPhone = !!formData.phone?.trim();
   const hasTravelDetails = !!(

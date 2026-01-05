@@ -5,11 +5,8 @@
 
 - pricing tool
 
-- edit current details, name should not disappear
-
 - history modal, to check up on previous clients 
 
-- depend on passenger array within BookingContext everywhere in project
 
 
 
